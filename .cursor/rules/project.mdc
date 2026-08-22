@@ -1,0 +1,15 @@
+---
+description: diamond-tilt repository conventions
+alwaysApply: true
+---
+
+**`AGENTS.md` at the repo root is the single source of truth — read it before working here.**
+
+Critical rules summarized (full details in AGENTS.md + `.agents/rules/`):
+
+- 2.5D baseball game for mobile (iOS + Android), Unity (C#). Repo may still be pre-project; once created check `ProjectSettings/ProjectVersion.txt` for the exact Unity version.
+- Never commit or edit `Library/`, `Temp/`, `Logs/`, `obj/`, `UserSettings/` — all regenerated.
+- Every asset has a sibling `.meta` with a stable GUID: never hand-edit/regenerate GUIDs; keep `.meta` beside its asset on rename/move.
+- `.unity` scenes / `.prefab` files are YAML and merge-conflict-prone: prefer editing C# scripts; if unavoidable, small additive changes only (see `.agents/rules/unity-assets.md`).
+- Gameplay logic = plain C# under `Assets/Scripts/Gameplay/**`, unit-testable in EditMode without Play Mode. MonoBehaviours are thin adapters; class name must exactly match file name.
+- Agents cannot open the Unity Editor GUI — end work with an exact "Manual steps" list for Editor-side actions (see `.agents/rules/agent-editor-boundary.md`).

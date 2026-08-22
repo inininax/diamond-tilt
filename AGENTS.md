@@ -1,17 +1,18 @@
 # AGENTS.md
 
-Shared instructions for all AI coding agents (Claude Code, Codex, OpenCode).
-This is the single source of truth — do not duplicate rules into `CLAUDE.md`, `.cursorrules`, etc. (`CLAUDE.md` symlinks to this file; `opencode.json` auto-loads this file plus `rules/**/*.md`.)
+Shared instructions for all AI coding agents (Claude Code, Codex, OpenCode, Gemini CLI, Cursor).
+This is the single source of truth — do not duplicate rules into tool-specific files.
+Symlinks for tools needing their own filename: `CLAUDE.md` (Claude Code), `GEMINI.md` (Gemini CLI), `.github/copilot-instructions.md` (GitHub Copilot). Edit `AGENTS.md` only, never write through a symlink. `.cursor/rules/project.mdc` carries a condensed copy (it needs Cursor frontmatter and cannot be a symlink); keep it consistent if you rename or move things.
 
 ## Shared rules system
 
-- Topic rules live in `rules/*.md`. Read the relevant file before working in that area.
-- Adding a rule: create `rules/<topic>.md`, then add one line to the index here AND in `rules/README.md`. Never duplicate a rule in two files.
+- Topic-scoped rules live in `.agents/rules/*.md` (extension point for future rules). OpenCode auto-loads them via the glob in `opencode.json`; Claude Code resolves the `@import` lines in the index below; other tools follow the readable pointers.
+- Adding a rule: create `.agents/rules/<topic>.md`, then add one line to the index here AND in `.agents/rules/README.md`. Never duplicate a rule in two files.
 
-Index:
+Rule index (`@import` lines — Claude Code resolves these):
 
-- [`rules/unity-assets.md`](rules/unity-assets.md) — scene/prefab/meta/YAML handling details
-- [`rules/agent-editor-boundary.md`](rules/agent-editor-boundary.md) — what agents cannot do without the Unity Editor GUI
+@.agents/rules/unity-assets.md
+@.agents/rules/agent-editor-boundary.md
 
 ## Project
 
@@ -38,9 +39,9 @@ No CLI build scripts exist yet. Until CI exists:
 
 - Never commit or edit `Library/`, `Temp/`, `Logs/`, `obj/`, `UserSettings/` — all regenerated. `.gitignore` already covers them.
 - Every asset has a sibling `.meta` file with a stable GUID. Never hand-edit, delete, or regenerate GUIDs; keep `.meta` with its asset when renaming/moving.
-- `.unity`/`.prefab` are YAML and merge-conflict-prone: prefer editing C# scripts; if unavoidable, small additive changes only. Full details: `rules/unity-assets.md`.
+- `.unity`/`.prefab` are YAML and merge-conflict-prone: prefer editing C# scripts; if unavoidable, small additive changes only. Full details: `.agents/rules/unity-assets.md`.
 - MonoBehaviour class name must exactly match its file name.
-- You cannot open the Unity Editor GUI — see `rules/agent-editor-boundary.md` for what stays manual and the required "Manual steps" protocol.
+- You cannot open the Unity Editor GUI — see `.agents/rules/agent-editor-boundary.md` for what stays manual and the required "Manual steps" protocol.
 
 ## Code conventions
 
