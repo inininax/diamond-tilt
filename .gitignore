@@ -2,6 +2,7 @@
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
+[Bb]in/
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
@@ -49,6 +50,9 @@ crashlytics-build.properties
 *.VC.db
 mono_crash.*.json
 [Aa]ssets/Plugins/Editor/JetBrains*
+
+# Headless test harness (kept in git; Unity regenerates its own csproj/sln)
+!Tests/DotNet/**/*.csproj
 
 # AI-agent local state (skills are intentionally committable)
 .omc/*

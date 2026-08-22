@@ -40,6 +40,59 @@ Simulate the ball in true 3D coordinates (x: left/right plate, y: height, z: tow
 - `Presentation`: listens to core events (`PitchThrown`, `ContactMade`, `BallLanded`, `OutRecorded`, `RunScored`) and animates sprites. Presentation never mutates game state.
 - Persistence: JSON file save (no cloud in v1).
 
+### Technical requirements (production bar)
+
+**Determinism & simulation**
+
+- Simulation advances in fixed ticks (60 Hz sim, decoupled from render). Core never reads wall-clock time; all timing comes from accumulated ticks.
+- All randomness goes through one injected `IRngService` (mulberry32 or xoshiro128**, seedable). `UnityEngine.Random` and direct `System.Random` are forbidden outside Core's RNG implementation.
+- Ball flight is analytic (closed-form projectile with gravity; quadratic drag optional but must be deterministic) and invertible: given launch params you can compute landing point without stepping frames.
+- Core emits events into a queue that Presentation drains (`drainEvents()` pattern). No callbacks/UI references inside Core.
+
+**Performance budgets (mid-range Android, e.g., Adreno 620 class)**
+
+- 60 fps steady state; frame budget 16.6 ms (sim ≤ 2 ms).
+- Zero per-frame GC allocations in hot paths (ball flight, input processing, HUD refresh). Use object pools for balls, swing effects, floating text.
+- Cold start to title < 3 s on target device; initial download (AAB/APK) < 150 MB.
+- IL2CPP constraints: no reflection, `Expression`, or `dynamic` in Core; add `link.xml` if code stripping breaks serialization.
+
+**Device & lifecycle**
+
+- Safe-area handling for notches (both orientations locked: landscape only).
+- Persist match + settings on `OnApplicationPause(true)` / scene transitions; app resume must restore exact mid-at-bat state (serialize full `MatchState`).
+- All user-facing strings via a string table from day one (localization-ready); no hardcoded UI text in code.
+- Input System package only (no legacy Input Manager); swipe thresholds defined in device-independent units, tunable per device DPI.
+
+### Security & privacy requirements
+
+**Data & saves**
+
+- Save schema carries `schemaVersion`; loader must migrate old versions and clamp every deserialized numeric field into valid ranges before use (tamper-resistant against hand-edited JSON).
+- Save integrity: HMAC-SHA256 checksum over payload with a device-local key; on mismatch, quarantine and start fresh — never crash or accept corrupted state.
+- No PII collected in v1: no account system, no analytics SDK, no advertising ID usage. If telemetry is added later, it requires a consent gate (COPPA/GDPR-K aware — this is a sports game playable by minors).
+
+**Secrets & supply chain**
+
+- No secrets/API keys in repo or client builds. v1 needs none; when networking arrives, keys live server-side behind token exchange.
+- Every third-party package/asset gets recorded in `THIRD-PARTY-NOTICES.md` with license before import. Prefer source-available packages; review code of anything touching network/storage/crypto.
+- Debug logs stripped from release builds (`#if DEVELOPMENT_BUILD || UNITY_EDITOR`); never log player data even in dev builds.
+
+**Networking (post-v1, design ahead)**
+
+- TLS everywhere with certificate pinning; server-authoritative results (client never decides wins/rewards); rate-limit all endpoints; replay-protected sessions.
+- Store submissions require privacy policy URL, App Store privacy nutrition labels, and Play Data Safety form — map data flows before adding any SDK.
+
+### Agent pipeline (how agents work together)
+
+Work runs as a repeating cycle until the reviewer reports **zero blocking findings**:
+
+1. **Analyzer** — reviews current code/spec against the production bar above; outputs a prioritized findings list (`P0` bug / `P1` risk / `P2` improvement).
+2. **Designer** — converts accepted P0/P1 findings into concrete designs (types, method signatures, edge cases, test plan); no code yet.
+3. **Developer** — implements the design + tests, runs the full test suite headless.
+4. **Reviewer** — independent pass: verifies tests actually assert behavior, checks architecture/security rules, hunts bugs. Output: blocking count. Non-zero → back to step 1 with the review as analyzer input.
+
+Role definitions live in `.agents/agents/*.md`. Exit criteria: all tests green, zero P0/P1 findings, `grep` invariants clean, no TODO stubs.
+
 ### Phases
 
 **Phase 0 — Scaffold:** Unity folders per AGENTS.md layout, test assemblies (`Tests/EditMode`, `Tests/PlayMode`), RNG service, placeholder scene list. Manual step: user creates the Unity project + imports packages if not present.

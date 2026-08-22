@@ -21,7 +21,8 @@ No CLI build scripts exist yet (the repo may predate the Unity project itself):
 
 ## Where the docs live
 
-- `PROMPT.md` — original game spec + phased plan (Phase 0–6). Pick up there if asked to "continue" building the game.
+- `PROMPT.md` — original game spec + phased plan (Phase 0–6), technical/security production bar, and the agent-pipeline protocol. Pick up there if asked to "continue" building the game.
+- Agent role definitions live in `.agents/agents/*.md` (analyzer, designer, developer, reviewer) — load the relevant one before acting in that role.
 - Topic-scoped rules live in `.agents/rules/*.md` (extension point for future rules). OpenCode auto-loads them via the glob in `opencode.json`; Claude Code resolves the `@import` list at the bottom of this file; other tools follow the readable pointers. Read `.agents/rules/README.md` before adding a new rule file.
 - This file (`AGENTS.md`) is the single source of truth for agent instructions. Codex/OpenCode/Cursor (newer) read it natively. Symlinks to it exist for tools needing their own filename: `CLAUDE.md` (Claude Code), `GEMINI.md` (Gemini CLI), `.github/copilot-instructions.md` (GitHub Copilot) — edit `AGENTS.md` only, never write through a symlink. `.cursor/rules/project.mdc` carries a condensed copy (it needs Cursor frontmatter and cannot be a symlink); keep it consistent if you rename or move things.
 
@@ -65,9 +66,10 @@ Tests/
 
 ## In-progress work (as of last session)
 
-- Shared-rules infrastructure is complete: `.agents/rules/` + tool symlinks + `.cursor/rules/project.mdc` + `opencode.json` glob (commit `95bf033`).
-- **Blocked on a manual step:** the Unity project does not exist yet — Unity is not installed on this machine (verified 2026-08-23). Next action: create/open the project in Unity Hub, then execute `PROMPT.md` Phase 0 (folders, test assemblies, RNG service).
-- Until the project exists, do not fabricate `Assets/**` files or claim builds/tests were run.
+- Phase 1 rules engine is implemented and verified **headlessly** (no Unity needed): plain-C# core in `Assets/Scripts/Core/` (MatchEngine, BaseRunnerEngine, MatchState, seeded RNG) with NUnit tests in `Tests/EditMode/`. Run them anywhere via `dotnet test Tests/DotNet/EditMode.Tests/EditMode.Tests.csproj` (needs .NET SDK; Unity not required). 36/36 green as of this session.
+- Agent pipeline exists: role definitions in `.agents/agents/*.md` (analyzer → designer → developer → reviewer); cycle repeats until the reviewer reports zero blocking findings. Pipeline usage is specified in `PROMPT.md` ("Agent pipeline").
+- **Still blocked for Editor work:** the Unity project does not exist yet (Unity not installed on this machine; verified 2026-08-23). Next action: create/open the project in Unity Hub, then execute `PROMPT.md` Phase 0 wiring (asmdefs so `Tests/EditMode` also runs inside Unity) and continue to Phase 2 (ball flight + CPU AI).
+- Until the Unity project exists, do not fabricate scenes/prefabs or claim Editor builds/tests were run.
 
 ## Conventions
 
