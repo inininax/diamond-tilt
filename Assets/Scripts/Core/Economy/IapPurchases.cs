@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public interface IReceiptValidator
     {

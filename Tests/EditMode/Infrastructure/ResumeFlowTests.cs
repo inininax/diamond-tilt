@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DiamondTilt.Core;
+using DiamondTilt.Core.Economy;
 using NUnit.Framework;
 
 namespace DiamondTilt.Tests

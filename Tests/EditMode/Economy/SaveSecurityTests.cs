@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DiamondTilt.Core;
+using DiamondTilt.Core.Economy;
 using NUnit.Framework;
 
 namespace DiamondTilt.Tests

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public interface IClock
     {

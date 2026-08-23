@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public sealed class DailyMissionState
     {
@@ -16,30 +16,26 @@ namespace DiamondTilt.Core
 
     public static class MissionRules
     {
-        public const int MaxAdBonusesPerDay = 5;
-        public const long AdBonusCoins = 150;
+        private static readonly MissionsConfig Default = MissionsConfig.DefaultStandard();
 
-        public static readonly (string Id, string Desc, Func<DailyMissionState, bool> Done, long GemReward)[] Catalog =
-        {
-            ("play_2", "2 matches played", s => s.PlayCount >= 2, 2),
-            ("hits_5", "5 hits collected", s => s.HitCount >= 5, 3),
-            ("hr_1", "1 homerun", s => s.HrCount >= 1, 5),
-            ("win_1", "Win a match", s => s.WinCount >= 1, 4),
-        };
+        public static int MaxAdBonusesPerDay => Default.MaxAdBonusesPerDay;
+        public static long AdBonusCoins => Default.AdBonusCoins;
     }
 
     public sealed class DailyMissionSystem
     {
         private readonly Wallet _wallet;
         private readonly IClock _clock;
+        private readonly MissionsConfig _config;
 
         public DailyMissionState State { get; }
 
-        public DailyMissionSystem(DailyMissionState state, Wallet wallet, IClock clock)
+        public DailyMissionSystem(DailyMissionState state, Wallet wallet, IClock clock, MissionsConfig config = null)
         {
             State = state ?? new DailyMissionState();
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
+            _config = config ?? MissionsConfig.DefaultStandard();
             EnsureDay();
         }
 
@@ -68,9 +64,9 @@ namespace DiamondTilt.Core
         public IReadOnlyList<string> ReadyMissionIds()
         {
             var ready = new List<string>();
-            foreach (var (id, _, done, _) in MissionRules.Catalog)
+            foreach (var m in _config.Catalog)
             {
-                if (done(State) && !State.ClaimedIds.Contains(id)) ready.Add(id);
+                if (m.IsComplete(State) && !State.ClaimedIds.Contains(m.Id)) ready.Add(m.Id);
             }
             return ready;
         }
@@ -78,14 +74,14 @@ namespace DiamondTilt.Core
         public PurchaseResult Claim(string missionId)
         {
             EnsureDay();
-            foreach (var (id, _, done, reward) in MissionRules.Catalog)
+            foreach (var m in _config.Catalog)
             {
-                if (id != missionId) continue;
-                if (State.ClaimedIds.Contains(id)) return PurchaseResult.DuplicateOrder;
-                if (!done(State)) return PurchaseResult.InvalidInput;
+                if (m.Id != missionId) continue;
+                if (State.ClaimedIds.Contains(m.Id)) return PurchaseResult.DuplicateOrder;
+                if (!m.IsComplete(State)) return PurchaseResult.InvalidInput;
 
-                _wallet.Grant(CurrencyType.Gems, reward, $"mission:{id}", _clock);
-                State.ClaimedIds.Add(id);
+                _wallet.Grant(CurrencyType.Gems, m.GemReward, $"mission:{m.Id}", _clock);
+                State.ClaimedIds.Add(m.Id);
                 return PurchaseResult.Success;
             }
             return PurchaseResult.UnknownItem;
@@ -94,10 +90,10 @@ namespace DiamondTilt.Core
         public PurchaseResult ClaimRewardedAdBonus()
         {
             EnsureDay();
-            if (State.AdBonusesToday >= MissionRules.MaxAdBonusesPerDay) return PurchaseResult.InvalidInput;
+            if (State.AdBonusesToday >= _config.MaxAdBonusesPerDay) return PurchaseResult.InvalidInput;
 
             State.AdBonusesToday++;
-            _wallet.Grant(CurrencyType.Coins, MissionRules.AdBonusCoins, "ad:bonus", _clock);
+            _wallet.Grant(CurrencyType.Coins, _config.AdBonusCoins, "ad:bonus", _clock);
             return PurchaseResult.Success;
         }
     }

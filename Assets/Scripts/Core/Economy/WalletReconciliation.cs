@@ -1,6 +1,6 @@
 using System;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public enum ReconcileStatus
     {

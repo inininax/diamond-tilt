@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public enum CurrencyType
     {

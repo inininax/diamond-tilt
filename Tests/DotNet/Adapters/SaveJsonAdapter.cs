@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using DiamondTilt.Core;
+using DiamondTilt.Core.Economy;
 
 namespace DiamondTilt.Tests
 {

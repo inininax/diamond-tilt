@@ -4,13 +4,13 @@
 
 ## Commands
 
-No CLI build scripts exist yet (the repo may predate the Unity project itself):
+```sh
+sh Scripts/run-tests.sh   # headless EditMode suite via dotnet (CI gate — run before finishing any change)
+```
+
+Unity-side commands (require the Unity Editor; set <unity> to your binary):
 
 ```sh
-# Open/run: open the repo root in Unity Hub,
-# matching the version in ProjectSettings/ProjectVersion.txt (once it exists)
-
-# Run EditMode tests headless (set <unity> to your Editor binary):
 <unity> -batchmode -nographics -projectPath . \
   -runTests -testPlatform EditMode -testResults TestResults/editmode.xml -logFile -
 # PlayMode: identical command with -testPlatform PlayMode
@@ -69,8 +69,8 @@ Tests/
 
 ## In-progress work (as of last session)
 
-- Phase 1 (rules engine) + Phase 2 core (ball flight physics, contact→flight mapping, CPU AI, save integrity) are implemented and verified **headlessly**: plain-C# core in `Assets/Scripts/Core/` with NUnit tests in `Tests/EditMode/`. Run via `dotnet test Tests/DotNet/EditMode.Tests/EditMode.Tests.csproj` (needs .NET SDK; Unity not required). 194/194 green; pipeline log in `Docs/pipeline-log.md` (212 cycles across 4 runs, reviewer PASS).
-- Monetization meta-layer is implemented headlessly in `Assets/Scripts/Core/Economy/**`: HMAC-changed currency ledger (`Wallet`), idempotent shop orders, season pass with month rollover, daily missions + capped rewarded-ad bonuses, subscription entitlements, IAP receipt-validation seam. Save schema is v2 with v1 migration. 194/194 green; economy spec in `Docs/MONETIZATION.md`.
+- Phase 1 (rules engine) + Phase 2 core (ball flight physics, contact→flight mapping, CPU AI, save integrity) are implemented and verified **headlessly**: plain-C# core in `Assets/Scripts/Core/` with NUnit tests in `Tests/EditMode/`. Run via `dotnet test Tests/DotNet/EditMode.Tests/EditMode.Tests.csproj` (needs .NET SDK; Unity not required). 194/194 green; pipeline log in `Docs/pipeline-log.md` (234 cycles across 5 runs, reviewer PASS).
+- Monetization meta-layer is implemented headlessly in `Assets/Scripts/Core/Economy/**`: HMAC-changed currency ledger (`Wallet`), idempotent shop orders, season pass with month rollover, daily missions + capped rewarded-ad bonuses, subscription entitlements, IAP receipt-validation seam. Save schema is v2 with v1 migration. 207/207 green; economy spec in `Docs/MONETIZATION.md`.
 - Determinism contract is pinned by tests: same seed → identical event stream; weighted contact model consumes exactly 1 RNG draw per contact; scores ≡ Σ RunScored events; economy consumes zero RNG.
 - Security bar implemented for saves: HMAC-SHA256 envelope, clamp-before-use, schema-version gate, quarantine-not-crash (`Docs/SECURITY.md`). Date keys are culture-invariant.
 - **Still blocked for Editor work:** the Unity project does not exist yet (Unity not installed on this machine). Next action: create/open the project in Unity Hub, then execute `PROMPT.md` Phase 0 wiring (asmdefs so `Tests/EditMode` also runs inside Unity), Phase 3 (touch input adapters), and store wiring: real Unity IAP + ads SDK behind `IReceiptValidator`/rewarded-ad seams are Editor/device-side manual steps.

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using DiamondTilt.Core;
+using DiamondTilt.Core.Economy;
 using NUnit.Framework;
 
 namespace DiamondTilt.Tests
@@ -120,7 +121,7 @@ namespace DiamondTilt.Tests
         [Test]
         public void Missions_Catalog_IdsUnique()
         {
-            var ids = MissionRules.Catalog.Select(m => m.Id).ToList();
+            var ids = MissionsConfig.DefaultStandard().Catalog.Select(m => m.Id).ToList();
 
             Assert.That(ids.Count, Is.EqualTo(ids.Distinct().Count()));
         }

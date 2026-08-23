@@ -1,4 +1,5 @@
 using DiamondTilt.Core;
+using DiamondTilt.Core.Economy;
 
 namespace DiamondTilt.Tests
 {

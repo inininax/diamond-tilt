@@ -1,6 +1,6 @@
 using System;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public sealed class MatchRewardService
     {
@@ -12,8 +12,11 @@ namespace DiamondTilt.Core
         public const long WinCoins = 100;
         public const long LossCoins = 30;
 
-        public MatchRewardService(Wallet wallet, DailyMissionSystem missions, SeasonPassSystem season, IClock clock)
+        private readonly RewardsConfig _config;
+
+        public MatchRewardService(Wallet wallet, DailyMissionSystem missions, SeasonPassSystem season, IClock clock, RewardsConfig config = null)
         {
+            _config = config ?? RewardsConfig.Default;
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _missions = missions ?? throw new ArgumentNullException(nameof(missions));
             _season = season ?? throw new ArgumentNullException(nameof(season));
@@ -27,7 +30,7 @@ namespace DiamondTilt.Core
             bool playerWon = result == Winner.Home;
             _missions.RecordMatch(playerWon, stats.HomeHits, stats.HomeHomeruns);
 
-            long coins = playerWon ? WinCoins : LossCoins;
+            long coins = playerWon ? _config.WinCoins : _config.LossCoins;
             _wallet.Grant(CurrencyType.Coins, coins, $"match:{(playerWon ? "win" : "loss")}", _clock);
 
             return _season.RecordMatch(playerWon, stats.HomeHits, stats.HomeHomeruns);

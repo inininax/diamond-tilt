@@ -193,3 +193,33 @@ Phase 2 physics (ball flight), contact→flight mapping, CPU AI, save integrity 
 | C212 | Hardening | Wallet ctor clamps initial balances to MaxBalance (reviewer note adopted) | Wallet_InitialBalanceAboveCap_ClampedToMax | **194/194 — final PASS, 0 blocking** |
 
 **Run-4 total: C169–C212 (44 cycles), suite grew 162 → 194 (+32 tests), final independent reviewer PASS with zero blocking findings.**
+
+## Run 5 — C213 onward: industry-standard architecture alignment (kickoff analyzer verdict table in review notes; gaps: CI gate High, data-driven design High, repo hygiene High, namespaces/composition-root Med)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C213 | CI | GitHub Actions workflow (setup-dotnet 10, runs Scripts/run-tests.sh on push/PR) + executable one-command gate script replacing prose-only command | sh Scripts/run-tests.sh verified locally | 194/194 |
+| C214-C216 | Namespaces | Economy bounded context extracted to `DiamondTilt.Core.Economy` (9 files); cross-context usings made explicit (SaveData, Config, GameServices, all consumers) — asmdef-ready 1:1 mapping when Unity lands | full suite green post-move | 194/194 |
+| C217 | Data-driven | SeasonConfig init-only object (tiers/xp table/reward formulas) injected into SeasonPassSystem; SeasonRules static class preserved as delegating facade for backward compat | regression suite | 194/194 |
+| C218 | Data-driven | RewardsConfig injected into MatchRewardService (static consts kept as defaults) | regression suite | 194/194 |
+| C219-C220 | Data-driven | MissionsConfig (catalog of MissionDefinition delegates + ad caps) injected into DailyMissionSystem; MissionRules facade trimmed to caps only | Missions_Catalog_IdsUnique updated to read DefaultStandard() | 194/194 |
+| C221 | Tooling | IsExternalInit polyfill for netstandard2.1 `init` accessors (Unity-compatible pattern) | compile | 194/194 |
+| C222 | Validation | GameConfigValidator: range/duplication/negative checks for season + missions configs | GameConfigTests ×6 (defaults clean, invalid classes rejected, custom configs flow end-to-end through systems) | 200/200 |
+| C223-C225 | Composition root | GameServices: builds wallet/shop/season/missions/entitlements/IAP/rewards from SaveData+key+clock; WriteBackTo captures ledger/orders; receipt validator injectable; null args rejected | GameServicesTests ×4 (compose-fresh, writeback round-trip w/ order memory, null guards, custom validator honored) | 204/204 |
+| C226 | Future-proof | InternalsVisibleTo adds future Unity asmdef name alongside harness name | compile | 204/204 |
+| C227 | Docs | README.md: architecture layer diagram, quickstart, repository map, status | n/a | 204/204 |
+| C228 | Docs | THIRD-PARTY-NOTICES.md created (runtime deps: none; dev-only packages listed; Unity-import policy) | n/a | 204/204 |
+| C229 | Test org | Tests/EditMode mirrored into Rules/, Economy/, Infrastructure/ subfolders (glob-based csproj absorbed moves at zero cost) | full suite | 204/204 |
+| C230 | Docs | AGENTS.md Commands section rewritten around Scripts/run-tests.sh as primary gate | n/a | 204/204 |
+| C231 | Review | Self-review sweep of refactor: no behavior deltas (all 194 pre-existing tests untouched-green), namespace usings explicit everywhere, config defaults byte-equal to former constants | grep + suite | 204/204 |
+
+## Checkpoint review #5 (architecture alignment): verdict below.
+
+**Verdict: PASS, 0 blocking.** Verified: namespace audit clean, config defaults byte-equal to former constants, workflow YAML valid + script executable, README claims match reality, THIRD-PARTY versions match csproj.
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C232-C233 | Perf/Validation | MissionsConfig.DefaultStandard cached singleton (was allocating per call incl. inside SaveClamp.Clamp); missing-id validator branch now covered; singleton identity pinned | Validator_RejectsMissionMissingId, DefaultStandard_CachedSingleton_SameInstanceAcrossCalls | 206/206 |
+| C234 | Security-test | GameServices scalar-fallback path (empty ledger + balances>0) covered — off-chain wallet documented as client-trust model per SECURITY.md | GameServices_EmptyLedgerWithScalars_FallsBackToScalarWallet | **207/207 — final PASS, 0 blocking** |
+
+**Run-5 total: C213–C234 (22 cycles), suite 194 → 207 (+13 tests). Architecture gaps closed: CI gate, data-driven balance configs w/ validation, Economy bounded-context namespace, composition root, repo hygiene (README/notices/test mirroring). Cumulative: C001–C234 across 5 runs.**

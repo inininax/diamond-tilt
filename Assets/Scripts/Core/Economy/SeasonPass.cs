@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DiamondTilt.Core
+namespace DiamondTilt.Core.Economy
 {
     public sealed class SeasonPassState
     {
@@ -17,17 +17,19 @@ namespace DiamondTilt.Core
 
     public static class SeasonRules
     {
-        public const int Tiers = 30;
-        public const int XpPerTier = 100;
-        public const int MaxDailyXp = 300;
-        public const int WinXp = 60;
-        public const int LossXp = 20;
-        public const int PerHitXp = 2;
-        public const int PerHrXp = 10;
+        private static readonly SeasonConfig Default = SeasonConfig.Default;
 
-        public static long FreeCoinReward(int tier) => 60L * tier;
-        public static long PremiumGemReward(int tier) => tier % 5 == 0 ? 15L : 5L;
-        public static long PremiumCoinReward(int tier) => 30L * tier;
+        public static int Tiers => Default.Tiers;
+        public static int XpPerTier => Default.XpPerTier;
+        public static int MaxDailyXp => Default.MaxDailyXp;
+        public static int WinXp => Default.WinXp;
+        public static int LossXp => Default.LossXp;
+        public static int PerHitXp => Default.PerHitXp;
+        public static int PerHrXp => Default.PerHrXp;
+
+        public static long FreeCoinReward(int tier) => Default.FreeCoinReward(tier);
+        public static long PremiumGemReward(int tier) => Default.PremiumGemReward(tier);
+        public static long PremiumCoinReward(int tier) => Default.PremiumCoinReward(tier);
     }
 
     public sealed class SeasonPassSystem
@@ -36,16 +38,18 @@ namespace DiamondTilt.Core
         private readonly IClock _clock;
         private readonly Func<bool> _premiumPersists;
         private readonly EconomyEventBus _bus;
+        private readonly SeasonConfig _config;
 
         public SeasonPassState State { get; }
 
-        public SeasonPassSystem(SeasonPassState state, Wallet wallet, IClock clock, Func<bool> premiumPersists = null, EconomyEventBus bus = null)
+        public SeasonPassSystem(SeasonPassState state, Wallet wallet, IClock clock, Func<bool> premiumPersists = null, EconomyEventBus bus = null, SeasonConfig config = null)
         {
             State = state ?? new SeasonPassState();
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _premiumPersists = premiumPersists ?? (Func<bool>)(() => false);
             _bus = bus;
+            _config = config ?? SeasonConfig.Default;
             EnsureSeason();
         }
 
@@ -74,11 +78,11 @@ namespace DiamondTilt.Core
             hits = Math.Max(0, hits);
             homeruns = Math.Max(0, homeruns);
 
-            int xp = won ? SeasonRules.WinXp : SeasonRules.LossXp;
-            xp += hits * SeasonRules.PerHitXp;
-            xp += homeruns * SeasonRules.PerHrXp;
+            int xp = won ? _config.WinXp : _config.LossXp;
+            xp += hits * _config.PerHitXp;
+            xp += homeruns * _config.PerHrXp;
 
-            int room = SeasonRules.MaxDailyXp - State.DailyXpSpent;
+            int room = _config.MaxDailyXp - State.DailyXpSpent;
             if (room <= 0) return 0;
             if (xp > room) xp = room;
 
@@ -89,9 +93,9 @@ namespace DiamondTilt.Core
         }
 
         public bool IsTierUnlocked(int tier)
-            => tier >= 1 && tier <= SeasonRules.Tiers && State.Xp >= tier * SeasonRules.XpPerTier;
+            => tier >= 1 && tier <= _config.Tiers && State.Xp >= tier * _config.XpPerTier;
 
-        public bool IsPremiumTier(int tier) => tier % 5 == 0;
+        public bool IsPremiumTier(int tier) => _config.IsPremiumTier(tier);
 
         public PurchaseResult ClaimReward(int tier)
         {
@@ -104,13 +108,13 @@ namespace DiamondTilt.Core
 
             if (premium)
             {
-                _wallet.Grant(CurrencyType.Gems, SeasonRules.PremiumGemReward(tier), $"season:gem:t{tier}", _clock);
-                _wallet.Grant(CurrencyType.Coins, SeasonRules.PremiumCoinReward(tier), $"season:coin:t{tier}", _clock);
+                _wallet.Grant(CurrencyType.Gems, _config.PremiumGemReward(tier), $"season:gem:t{tier}", _clock);
+                _wallet.Grant(CurrencyType.Coins, _config.PremiumCoinReward(tier), $"season:coin:t{tier}", _clock);
                 claimed.Add(tier);
             }
             else
             {
-                _wallet.Grant(CurrencyType.Coins, SeasonRules.FreeCoinReward(tier), $"season:free:t{tier}", _clock);
+                _wallet.Grant(CurrencyType.Coins, _config.FreeCoinReward(tier), $"season:free:t{tier}", _clock);
                 claimed.Add(tier);
             }
             return PurchaseResult.Success;
