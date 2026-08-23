@@ -30,9 +30,12 @@ namespace DiamondTilt.Tests
 
                 var data = JsonSerializer.Deserialize<SaveData>(envelope.Payload);
                 if (data == null || data.Match == null) return false;
-                if (!SaveClamp.IsSupportedSchema(data.SchemaVersion)) return false;
+                if (!SaveClamp.IsKnownSchema(data.SchemaVersion)) return false;
+                if (!SaveClamp.MigrateToCurrent(data)) return false;
 
                 SaveClamp.Clamp(data.Match);
+                SaveClamp.Clamp(data);
+
                 loaded = data;
                 return true;
             }

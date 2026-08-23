@@ -32,7 +32,8 @@ namespace DiamondTilt.Tests
         [Test]
         public void SaveClamp_NullSnapshot_NoThrow()
         {
-            Assert.DoesNotThrow(() => SaveClamp.Clamp(null));
+            Assert.DoesNotThrow(() => SaveClamp.Clamp((MatchSnapshot)null));
+            Assert.That(GameSettings.Clamp(null), Is.Not.Null);
         }
 
         [Test]

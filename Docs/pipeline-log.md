@@ -104,3 +104,60 @@ Phase 2 physics (ball flight), contact→flight mapping, CPU AI, save integrity 
 | C109 | Review | Checkpoint review #3 (re-review): **PASS, 0 blocking** — revert-sensitivity empirically proven by reviewer scratch harness | full suite | 104/104 |
 
 **Final state: 104/104 tests green, 105+ pipeline cycles completed, reviewer PASS with zero blocking findings.**
+
+## Monetization batch — C110 onward (spec: Docs/MONETIZATION.md)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C110 | Design | MONETIZATION.md: subscription/battle-pass/IAP/rewarded-ads/cosmetics model; anti-abuse contract; server-ready ledger rationale; KPI targets | n/a | 104/104 |
+| C111 | Economy | IClock + FixedClock + TimeKeys (day/season keys) — wall-clock stays out of Core via injection | TimeKeys_Formats | 105/105 |
+| C112 | Economy | Wallet ctor validation (key length, negative initial balances) | Wallet_NegativeInitialBalance_Throws | 106/106 |
+| C113 | Economy | Grant/Spend with reason codes + day keys | Wallet_Grants_AppendVerifiableEntries | 107/107 |
+| C114 | Security | Insufficient-funds guard throws before mutation | Wallet_InsufficientSpend_Throws_StateUnchanged | 108/108 |
+| C115 | Security | Reject zero/negative amounts, empty reasons, null clock | Wallet_RejectsInvalidMutations | 109/109 |
+| C116 | Security | HMAC-SHA256 hash-chained ledger entries | chain asserted in C113 | 109/109 |
+| C117 | Security | Chain tamper detection (forged amount breaks verify) | Wallet_LedgerTampering_Detected | 110/110 |
+| C118 | Save | FromEntries restore (verify-then-rebuild balances) | Wallet_RestoreFromEntries_VerifiedChain | 111/111 |
+| C119 | Security | Broken-chain restore rejected as EconomyException | Wallet_RestoreWithBrokenChain_Throws | 112/112 |
+| C120 | Economy | Balance cap 1e12 prevents overflow exploits | Wallet_BalanceCap_PreventsOverflow | 113/113 |
+| C121-C127 | Shop | ShopCatalog (4 items), PurchaseProcessor: idempotent order ids, owned cosmetics, coin/gem pricing, invalid input taxonomy, order-memory restore | Shop_PurchaseSuccess_Deducts_AndMarksOwned, Shop_DuplicateOrder_NoDoubleCharge, Shop_UnknownItem_Reported, Shop_InsufficientFunds_Reported_WalletUnchanged, Shop_InvalidInput_Reported, Shop_RestoreState_PreservesOrderMemory | 120/120 |
+| C128 | Season | SeasonPassState/Rules (30 tiers × 100xp, daily cap 300) + EnsureSeason rollover | Season_EnsureSeason_CreatesCurrentId | 121/121 |
+| C129 | Season | XP formula win60/loss20/hit2/hr10 | Season_RecordMatch_XpMath | 122/122 |
+| C130 | Season | Daily XP cap enforced + midnight window reset | Season_DailyCap_Enforced_AndResetsNextDay | 123/123 |
+| C131 | Season | Tier unlock boundary (100xp ⇒ tier1) | Season_TierUnlock_Boundary | 124/124 |
+| C132 | Season | Free-tier claim once (coins) | Season_ClaimFree_GrantsCoinsOnce | 125/125 |
+| C133 | Season | Premium tiers (every 5th) gated by ownership | Season_PremiumTier_GatedByOwnership | 126/126 |
+| C134 | Bugfix | Rollover premium persistence was hardcoded false → injected Func\<bool\> predicate; verified keep-vs-reset both ways across month boundary | Season_Rollover_ResetsProgress_PremiumPersistsOnlyWithSubscription | 127/127 |
+| C135-C139 | Missions | DailyMissionSystem: fixed v1 catalog (play2/hits5/hr1/win1), progress accumulation, ready list, claim-once gem rewards, next-day reset, rewarded-ad bonus capped at 5/day (+150 coins) | Missions_ProgressAccumulates_AndReadyListCorrect, Missions_ClaimGrantsExactGems_OncePerDay, Missions_NotReadyClaim_Rejected, Missions_NextDayResetsEverything, AdBonus_GrantsCoins_UntilDailyCap | 132/132 |
+| C140 | Entitlement | ActivateOrExtend semantics: stacks from max(expiry, today); expiry ⇒ inactive until renew (test expectation corrected during design review — stacking documented) | Entitlements_ActivateExtendsFromToday, Entitlements_ExpiredSubscription_InactiveUntilRenewed | 134/134 |
+| C141 | IAP | IReceiptValidator seam + FakeReceiptValidator (dev-only) | FakeValidator_RejectsTamperedAndEmpty | 135/135 |
+| C142 | Bugfix | IapPurchaseService redesign: original draft had unused clock field, dual order ledgers, wall-clock AdapterClock inside Core, hacky bundle side-effect — rewritten single-order-ledger service with injected IClock | (found by self-review before tests ran) | 135/135 |
+| C143 | IAP | Gem packs grant exact amounts; duplicate orderId never double-grants | Iap_GemPack_GrantsExactGems_IdempotentByOrderId | 136/136 |
+| C144 | IAP | DiamondPass activates 30d subscription; SeasonPremium owns track | Iap_DiamondPass_ActivatesSubscription_SeasonPremium_OwnsTrack | 137/137 |
+| C145 | IAP | Bad receipt / unknown product rejected without mutation | Iap_BadReceipt_AndUnknownProduct_Rejected | 138/138 |
+| C146 | Save | Schema v2: wallet balances, full ledger, season/missions/subscription state, orders, owned items, streak fields | compile + roundtrip | 138/138 |
+| C147 | Migration | v1→v2 migrator (defaults fill, version bump); future versions rejected | Migration_V1Save_UpgradesToV2_WithDefaults, Migration_FutureVersion_Rejected | 140/140 |
+| C148 | Security | SaveClamp extended to all economy fields (balances, streaks, mission counters, ad bonuses, tier lists pruned to valid range) | Clamp_SaveData_NegativeBalances_Zeroed_StreakCapped | 141/141 |
+| C149 | Privacy | NoPiiAudit whitelist updated for v2 keys — deliberate, reviewed schema extension (still no identifiers) | NoPiiAudit green | 142/142 |
+| C150 | Adapter | TryLoad now: known-schema gate → migrate-to-current → clamp match + whole save | existing adapter suite | 142/142 |
+| C151 | Rewards | MatchRewardService bridge: winner/stats → coins + missions + season XP (player=home convention documented in code shape) | Integration_MatchRewards_FlowThroughAllSystems_LedgerVerified | 143/143 |
+| C152 | Fuzz | 10 seeded auto-matches through reward pipeline: no throw, no negative balance, chain always verifies | Fuzz_TenSeededGames_RewardsNeverBreakEconomy | 143/143 |
+| C153 | TDD fixes | Test-expectation corrections found while executing suite (expiry-stacking semantics, home-side event attribution, one-match vs two-match readiness, daily-cap vs tier-unlock interaction) | suite green after each | 143/143 |
+| C154 | Bugfix | SaveClamp.Clamp(null) ambiguity between overloads → explicit cast + extra assertion | HardeningTests green | 143/143 |
+| C155 | Bugfix | Unqualified schema-version consts in SaveClamp (CS0103) → qualified | build clean | 143/143 |
+| C156-C162 | Edge hardening | Currency isolation; per-day entry keys; empty-chain verify true; null-entries restore throws; coin-priced shop item; catalog id uniqueness/positive prices; tier-30 needs ≥10 days (cap math pinned); re-claim same tier allowed next season; season reward positivity table; mission catalog id uniqueness; negative mission inputs ignored; same-day double activation extends not shortens; restored IAP orders stay idempotent; loss-path grants LossCoins; null-stats throws; FixedClock advance | EconomyEdgeTests (16 tests) | 159/159 |
+| C163 | Review | Self-review sweep of economy API surface: no wall-clock reads in Core (clock injected everywhere), all money mutations go through ledger, every Try* returns typed result | grep invariants clean | 159/159 |
+
+## Checkpoint review #3 (economy batch): verdict below.
+
+**Verdict: PASS, 0 blocking.** Non-blocking adopted as C164–C167 (culture-safe dates flagged as deployment-grade risk).
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C164 | Bugfix | Culture-invariant date keys: TimeKeys formats pinned to InvariantCulture — locale switch mid-life could corrupt expiry/day-key round-trips | TimeKeys_CultureInvariant_Formats | 160/160 |
+| C165 | Bugfix | EntitlementService parses day keys via TryParseExact(invariant) — malformed stored key now fails closed (inactive), never throws | Entitlements_MalformedExpiryDayKey_FailsClosed_NoThrow | 161/161 |
+| C166 | Economy | Shop repurchase policy by kind: cosmetics blocked once owned (no charge), boosters intentionally consumable | Shop_CosmeticRepurchase_BlockedWithoutCharge_BoosterRepeatAllowed | 162/162 |
+| C167 | Cleanup | Dead catch on IAP grant path removed (Grant cannot throw EconomyException; taxonomy honest again) | existing suite | 162/162 |
+| C168 | Review | Reviewer notes disposition: culture fix adopted, dead code removed, cosmetic policy decided+tested, nested-key audit & migrator streak-zeroing documented as accepted conservative behavior | full suite | **162/162 — reviewer PASS, 0 blocking** |
+
+## Session total: C001–C168 ledger entries across 3 runs; final suite 162/162 green; last three independent reviews PASS with zero blocking findings.

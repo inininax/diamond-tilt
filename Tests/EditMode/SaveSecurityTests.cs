@@ -148,7 +148,10 @@ namespace DiamondTilt.Tests
 
             foreach (var prop in doc.RootElement.EnumerateObject())
             {
-                Assert.That(prop.Name, Is.AnyOf("SchemaVersion", "Match", "Wins", "Losses", "DifficultyTier"),
+                Assert.That(prop.Name, Is.AnyOf("SchemaVersion", "Match", "Wins", "Losses", "DifficultyTier",
+                        "CurrentStreak", "BestStreak",
+                        "WalletCoins", "WalletGems", "Ledger", "SeasonPass", "Missions", "Subscription",
+                        "PurchaseOrders", "IapOrders", "OwnedShopItems"),
                     "unexpected top-level key — possible PII leak");
             }
             foreach (var prop in doc.RootElement.GetProperty("Match").EnumerateObject())
