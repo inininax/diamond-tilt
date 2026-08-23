@@ -6,11 +6,11 @@ using UnityEngine;
 
 namespace DiamondTilt.Presentation
 {
-    internal static class SaveStorage
+    public static class SaveStorage
     {
         private const string FileName = "save.json";
 
-        internal static SaveData LoadOrDefault(byte[] key)
+        public static SaveData LoadOrDefault(byte[] key)
         {
             try
             {
@@ -35,7 +35,7 @@ namespace DiamondTilt.Presentation
             }
         }
 
-        internal static void Store(GameServices services, byte[] key)
+        public static void Store(GameServices services, byte[] key)
         {
             try
             {

@@ -37,7 +37,7 @@ namespace DiamondTilt.Core.EditorTools
                     new[] { "DiamondTilt.Core", "DiamondTilt.Presentation" }, Array.Empty<string>()));
 
             AsmdefWriter.WriteIfMissing(
-                "Tests/EditMode/DiamondTilt.Tests.EditMode.asmdef",
+                "Assets/Tests/EditMode/DiamondTilt.Tests.EditMode.asmdef",
                 Json(false, "DiamondTilt.Tests.EditMode",
                     new[] { "DiamondTilt.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner" },
                     new[] { "nunit.framework.dll" },
@@ -82,8 +82,31 @@ namespace DiamondTilt.Core.EditorTools
         private static void EnsureScenes()
         {
             Directory.CreateDirectory("Assets/Scenes");
-            EnsureScene("Assets/Scenes/Boot.unity");
-            EnsureScene("Assets/Scenes/Match.unity");
+            EnsureScene("Assets/Scenes/Boot.unity", withRunner: true);
+            EnsureScene("Assets/Scenes/Match.unity", withRunner: false, autoPlayer: true);
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene("Assets/Scenes/Boot.unity", true),
+                new EditorBuildSettingsScene("Assets/Scenes/Match.unity", true),
+            };
+        }
+
+        private static void EnsureScene(string path, bool withRunner, bool autoPlayer = false)
+        {
+            if (File.Exists(path)) return;
+
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            if (withRunner)
+            {
+                var runnerGo = new GameObject("GameRunner");
+                runnerGo.AddComponent<DiamondTilt.Presentation.GameRunner>();
+            }
+            if (autoPlayer)
+            {
+                var playerGo = new GameObject("MatchAutoPlayer");
+                playerGo.AddComponent<DiamondTilt.Presentation.MatchAutoPlayer>();
+            }
+            EditorSceneManager.SaveScene(scene, path);
         }
 
         private static void EnsureScene(string path)

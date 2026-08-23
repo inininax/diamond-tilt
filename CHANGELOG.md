@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 — PlayMode verification
+
+- PlayMode smoke suite (Unity): scene-service composition, full-match-under-budget, device save round-trip
+- Bootstrapper registers scenes into build settings; Match scene ships MatchAutoPlayer demo
+
 ## 0.5.0 — Unity project live
 
 - Unity 6000.0.82f1 project created from this repo; bootstrapper menu verified end-to-end

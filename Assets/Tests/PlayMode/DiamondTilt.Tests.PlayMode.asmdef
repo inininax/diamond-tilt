@@ -1,0 +1,8 @@
+{
+  "name": "DiamondTilt.Tests.PlayMode",
+  "rootNamespace": "DiamondTilt.Tests",
+  "references": ["DiamondTilt.Core", "DiamondTilt.Presentation", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "precompiledReferences": ["nunit.framework.dll"],
+  "overrideReferences": true,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}

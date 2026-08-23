@@ -281,4 +281,14 @@ Unity 6000.0.82f1 installed via Hub CLI; Personal license active; project opened
 | EditMode inside Unity | Discovered Unity only sees assets under `Assets/`: moved tests to `Assets/Tests/EditMode/**`, repointed headless csproj glob; split STJ-dependent adapter tests into `Tests/DotNet/Adapters/SaveAdapterTests.cs` (dotnet-only); replaced `Assert.Multiple` (Unity's bundled NUnit lacks it) | tests4.log |
 | **Final** | **Unity EditMode: 229/229 PASSED. Headless: 236/236 PASSED. Δ7 = dotnet-only adapter tests.** | TestResults/editmode.xml |
 
+## Run 10 — C270–C272: PlayMode smoke suite + build registration
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C270 | Bootstrap | Scenes registered in EditorBuildSettings via bootstrapper; Match scene regenerated with MatchAutoPlayer (press-Play auto-match demo) | bootstrap EXIT=0 | — |
+| C271 | PlayMode | DiamondTilt.Tests.PlayMode asmdef + SmokeTests ×3: GameRunner service composition in-scene, full match completes <10s wall-clock, SaveStorage device round-trip preserves balance + verifies ledger chain | UNITY PLAYMODE 3/3 | ✅ |
+| C272 | Fixes | PlayMode compile fixes found only in Unity: missing UnityEngine.TestTools/Presentation usings | full gates re-run | **Headless 236/236 · Unity EditMode 229/229 · Unity PlayMode 3/3** |
+
+**Run-10 total: 3 cycles. All three test surfaces green. Cumulative: C001–C272 across 10 runs.**
+
 **Run-9 total: C269 bring-up cycle (multiple sub-fixes, each verified by a fresh batchmode run). Cumulative: C001–C269 across 9 runs. The project now compiles and tests BOTH headlessly and inside Unity.**
