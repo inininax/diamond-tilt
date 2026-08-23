@@ -6,7 +6,7 @@ namespace DiamondTilt.Core
     {
         public const int DefaultPitchGuard = 2000;
 
-        public static void Play(
+        public static bool Play(
             MatchEngine engine,
             IPitchStrategy awayBatterFacingPitcher,
             ISwingStrategy awayBatter,
@@ -27,14 +27,16 @@ namespace DiamondTilt.Core
                 SwingDecision swing = batter.DecideSwing(pitch, engine.State, rng);
                 engine.ThrowPitch(pitch, swing);
             }
+
+            return engine.State.Phase == MatchPhase.Finished;
         }
 
-        public static void PlaySelfContained(MatchEngine engine, Difficulty difficulty, uint seed)
+        public static bool PlaySelfContained(MatchEngine engine, Difficulty difficulty, uint seed)
         {
             var rng = new Mulberry32Rng(seed);
             var pitcher = new SeededPitcherAI();
             var batter = CountAwareBatterAI.ForDifficulty(difficulty);
-            Play(engine, pitcher, batter, pitcher, batter, rng);
+            return Play(engine, pitcher, batter, pitcher, batter, rng);
         }
     }
 }

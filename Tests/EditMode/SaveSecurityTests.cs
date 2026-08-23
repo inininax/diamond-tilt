@@ -164,6 +164,48 @@ namespace DiamondTilt.Tests
         }
 
         [Test]
+        public void Adapter_Load_BalancesEqualLedgerTail_RoundTrip()
+        {
+            var clock = new FixedClock(new DateTime(2026, 8, 23, 12, 0, 0, DateTimeKind.Utc));
+            var wallet = new Wallet(Key);
+            wallet.Grant(CurrencyType.Coins, 300, "r", clock);
+            wallet.Spend(CurrencyType.Coins, 50, "r", clock);
+            wallet.Grant(CurrencyType.Gems, 12, "r", clock);
+
+            var data = new SaveData
+            {
+                WalletCoins = wallet.Coins,
+                WalletGems = wallet.Gems,
+                Ledger = new System.Collections.Generic.List<LedgerEntry>(wallet.Entries),
+            };
+            string json = SaveJsonAdapter.SerializeEnvelope(data, Key);
+
+            bool ok = SaveJsonAdapter.TryLoad(json, Key, out var loaded);
+
+            Assert.That(ok, Is.True);
+            Assert.That(loaded.WalletCoins, Is.EqualTo(250));
+            Assert.That(loaded.WalletGems, Is.EqualTo(12));
+        }
+
+        [Test]
+        public void Adapter_CorruptLedgerChain_FailsClosed()
+        {
+            var clock = new FixedClock(new DateTime(2026, 8, 23, 12, 0, 0, DateTimeKind.Utc));
+            var wallet = new Wallet(Key);
+            wallet.Grant(CurrencyType.Gems, 40, "r", clock);
+
+            var data = new SaveData
+            {
+                WalletGems = 40,
+                Ledger = new System.Collections.Generic.List<LedgerEntry>(wallet.Entries),
+            };
+            data.Ledger[0].Amount = 40000;
+            string json = SaveJsonAdapter.SerializeEnvelope(data, Key);
+
+            Assert.That(SaveJsonAdapter.TryLoad(json, Key, out _), Is.False);
+        }
+
+        [Test]
         public void Integrity_PerfSmoke_500TagsAndVerifies_UnderTwoSeconds()
         {
             var sw = Stopwatch.StartNew();

@@ -50,11 +50,21 @@ namespace DiamondTilt.Tests
         }
 
         [Test]
-        public void AutoMatch_Guard_TerminatesOnStuckEngine()
+        public void AutoMatch_Guard_TerminatesOnStuckEngine_SignalsExhaustion()
         {
             var engine = new MatchEngine(new AlwaysFoulResolver());
 
-            Assert.DoesNotThrow(() => AutoMatch.PlaySelfContained(engine, Difficulty.Normal, 3u));
+            bool completed = false;
+            Assert.DoesNotThrow(() =>
+                completed = AutoMatch.Play(
+                    engine,
+                    new SeededPitcherAI(),
+                    CountAwareBatterAI.ForDifficulty(Difficulty.Normal),
+                    new SeededPitcherAI(),
+                    CountAwareBatterAI.ForDifficulty(Difficulty.Normal),
+                    new Mulberry32Rng(3u)));
+
+            Assert.That(completed, Is.False);
             Assert.That(engine.State.Phase == MatchPhase.InProgress || engine.State.Phase == MatchPhase.Finished, Is.True);
         }
 
@@ -86,7 +96,7 @@ namespace DiamondTilt.Tests
 
         private sealed class AlwaysFoulResolver : IContactResolver
         {
-            public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks)
+            public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks, int perfectBandTicks)
                 => new ContactResolution(PlayOutcome.Foul);
         }
     }

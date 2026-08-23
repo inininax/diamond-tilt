@@ -35,15 +35,17 @@ namespace DiamondTilt.Core
         private readonly Wallet _wallet;
         private readonly IClock _clock;
         private readonly Func<bool> _premiumPersists;
+        private readonly EconomyEventBus _bus;
 
         public SeasonPassState State { get; }
 
-        public SeasonPassSystem(SeasonPassState state, Wallet wallet, IClock clock, Func<bool> premiumPersists = null)
+        public SeasonPassSystem(SeasonPassState state, Wallet wallet, IClock clock, Func<bool> premiumPersists = null, EconomyEventBus bus = null)
         {
             State = state ?? new SeasonPassState();
             _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _premiumPersists = premiumPersists ?? (Func<bool>)(() => false);
+            _bus = bus;
             EnsureSeason();
         }
 
@@ -52,6 +54,7 @@ namespace DiamondTilt.Core
             string current = TimeKeys.SeasonId(_clock.UtcNow);
             if (State.SeasonId == current) return;
 
+            bool hadPreviousSeason = !string.IsNullOrEmpty(State.SeasonId);
             bool keepPremium = State.PremiumOwned && _premiumPersists();
             State.SeasonId = current;
             State.Xp = 0;
@@ -60,13 +63,16 @@ namespace DiamondTilt.Core
             State.ClaimedFreeTiers.Clear();
             State.ClaimedPremiumTiers.Clear();
             State.PremiumOwned = keepPremium;
-            State.SeasonsCompleted++;
+            if (hadPreviousSeason) State.SeasonsCompleted++;
         }
 
         public int RecordMatch(bool won, int hits, int homeruns)
         {
             EnsureSeason();
             ResetDailyWindowIfNeeded();
+
+            hits = Math.Max(0, hits);
+            homeruns = Math.Max(0, homeruns);
 
             int xp = won ? SeasonRules.WinXp : SeasonRules.LossXp;
             xp += hits * SeasonRules.PerHitXp;
@@ -78,6 +84,7 @@ namespace DiamondTilt.Core
 
             State.Xp += xp;
             State.DailyXpSpent += xp;
+            _bus?.Publish(EconomyEventType.XpGained, $"season:{xp}");
             return xp;
         }
 

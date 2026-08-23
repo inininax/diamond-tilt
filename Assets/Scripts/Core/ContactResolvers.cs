@@ -16,7 +16,7 @@ namespace DiamondTilt.Core
 
     public interface IContactResolver
     {
-        ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks);
+        ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks, int perfectBandTicks);
     }
 
     public sealed class WeightedContactResolver : IContactResolver
@@ -28,7 +28,7 @@ namespace DiamondTilt.Core
             _model = model ?? throw new ArgumentNullException(nameof(model));
         }
 
-        public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks)
+        public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks, int perfectBandTicks)
             => new ContactResolution(_model.Roll());
     }
 
@@ -36,13 +36,15 @@ namespace DiamondTilt.Core
     {
         private const int MeatZone = 4;
 
-        public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks)
+        public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks, int perfectBandTicks)
         {
             bool zoneStrike = StrikeZone.IsStrike(pitch.Zone);
+            int band = Math.Min(Math.Max(perfectBandTicks, 0), 1);
+            if (absOffsetTicks <= band)
+                return PerfectContact(pitch.Zone, zoneStrike);
+
             switch (absOffsetTicks)
             {
-                case 0:
-                    return PerfectContact(pitch.Zone, zoneStrike);
                 case 1:
                     return zoneStrike
                         ? new ContactResolution(PlayOutcome.Double, Flight(31, 24))

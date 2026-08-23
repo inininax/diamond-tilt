@@ -100,7 +100,7 @@ namespace DiamondTilt.Tests
             var model = new WeightedContactResolver(new WeightedContactModel(counting));
             int before = counting.NextIntCalls;
 
-            model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0);
+            model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0, 1);
 
             Assert.That(counting.NextIntCalls - before, Is.EqualTo(1));
         }

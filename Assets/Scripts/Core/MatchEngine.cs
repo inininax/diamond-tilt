@@ -49,14 +49,20 @@ namespace DiamondTilt.Core
 
             int offset = swing.TimingOffsetTicks;
             int abs = offset == int.MinValue ? int.MaxValue : offset < 0 ? -offset : offset;
-            if (abs >= MissOffsetThresholdTicks)
+
+            int missThreshold = MissOffsetThresholdTicks - SpeedWindowPenalty(pitch.SpeedTier);
+            int perfectBand = pitch.SpeedTier == PitchCall.MinSpeedTier ? 1 : 0;
+
+            if (abs >= missThreshold)
             {
                 AddStrike();
                 return;
             }
 
-            ResolveContact(pitch, swing, abs);
+            ResolveContact(pitch, swing, abs, perfectBand);
         }
+
+        private static int SpeedWindowPenalty(int speedTier) => speedTier;
 
         private void ResolveBall()
         {
@@ -67,6 +73,7 @@ namespace DiamondTilt.Core
                 BaseRunnerEngine.ForceAdvanceForWalk(State, _events);
                 State.ResetBatterCount();
                 CheckHalfInningEnd();
+                CheckWalkoff();
                 return;
             }
             _events.Add(new MatchEvent(MatchEventType.BallCalled, State.Inning, State.IsTop));
@@ -89,9 +96,9 @@ namespace DiamondTilt.Core
             _events.Add(new MatchEvent(MatchEventType.StrikeCalled, State.Inning, State.IsTop));
         }
 
-        private void ResolveContact(PitchCall pitch, SwingDecision swing, int absOffsetTicks)
+        private void ResolveContact(PitchCall pitch, SwingDecision swing, int absOffsetTicks, int perfectBand)
         {
-            ContactResolution resolution = _contactResolver.Evaluate(pitch, swing, absOffsetTicks);
+            ContactResolution resolution = _contactResolver.Evaluate(pitch, swing, absOffsetTicks, perfectBand);
             switch (resolution.Outcome)
             {
                 case PlayOutcome.Foul:
@@ -136,6 +143,7 @@ namespace DiamondTilt.Core
                 State.Inning, State.IsTop));
             State.ResetBatterCount();
             CheckHalfInningEnd();
+            CheckWalkoff();
         }
 
         private void ResolveGrounder()
@@ -156,6 +164,7 @@ namespace DiamondTilt.Core
                 BaseRunnerEngine.ScoreRun(State, _events);
             }
             CheckHalfInningEnd();
+            CheckWalkoff();
         }
 
         private void ResolveDeepFly()
@@ -168,6 +177,7 @@ namespace DiamondTilt.Core
                 BaseRunnerEngine.ScoreRun(State, _events);
             }
             CheckHalfInningEnd();
+            CheckWalkoff();
         }
 
         private void RecordOut(MatchEventType eventType)
@@ -176,6 +186,13 @@ namespace DiamondTilt.Core
             _events.Add(new MatchEvent(eventType, State.Inning, State.IsTop));
             State.ResetBatterCount();
             CheckHalfInningEnd();
+        }
+
+        private void CheckWalkoff()
+        {
+            if (State.Phase == MatchPhase.Finished) return;
+            if (State.IsTop || State.Inning < MatchState.Innings) return;
+            if (State.HomeRuns > State.AwayRuns) FinishMatch();
         }
 
         private void CheckHalfInningEnd()

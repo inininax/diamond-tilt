@@ -1,12 +1,19 @@
+using System;
+
 namespace DiamondTilt.Core
 {
     public readonly struct PitchCall
     {
-        public readonly int Zone;
+        public const int MinSpeedTier = 0;
+        public const int MaxSpeedTier = 2;
 
-        public PitchCall(int zone)
+        public readonly int Zone;
+        public readonly int SpeedTier;
+
+        public PitchCall(int zone, int speedTier = 1)
         {
             Zone = zone;
+            SpeedTier = Math.Clamp(speedTier, MinSpeedTier, MaxSpeedTier);
         }
     }
 

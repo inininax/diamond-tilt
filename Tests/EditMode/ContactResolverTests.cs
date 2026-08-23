@@ -10,7 +10,7 @@ namespace DiamondTilt.Tests
         public void TimingModel_PerfectTiming_StrikeZone_PowerDrive()
         {
             var model = new TimingContactModel();
-            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0);
+            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0, 1);
 
             Assert.That(r.Outcome == PlayOutcome.Homerun || r.Outcome == PlayOutcome.DeepFly, Is.True);
             Assert.That(r.Flight.HasValue, Is.True);
@@ -20,7 +20,7 @@ namespace DiamondTilt.Tests
         public void TimingModel_PerfectTiming_MeatZone_ClearsWall_ForHomerun()
         {
             var model = new TimingContactModel();
-            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0);
+            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0, 1);
 
             Assert.That(r.Outcome, Is.EqualTo(PlayOutcome.Homerun));
         }
@@ -46,8 +46,8 @@ namespace DiamondTilt.Tests
         public void TimingModel_NonStrikeZone_ReducesDrivePower()
         {
             var model = new TimingContactModel();
-            var good = model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0);
-            var chased = model.Evaluate(new PitchCall(9), SwingDecision.Swing(0), 0);
+            var good = model.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0, 1);
+            var chased = model.Evaluate(new PitchCall(9), SwingDecision.Swing(0), 0, 1);
 
             Assert.That(chased.Flight.Value.ExitSpeedMps,
                 Is.LessThan(good.Flight.Value.ExitSpeedMps));
@@ -57,7 +57,7 @@ namespace DiamondTilt.Tests
         public void TimingModel_OffsetOne_StrikeZone_IsDouble()
         {
             var model = new TimingContactModel();
-            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(1), 1);
+            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(1), 1, 0);
 
             Assert.That(r.Outcome, Is.EqualTo(PlayOutcome.Double));
         }
@@ -66,7 +66,7 @@ namespace DiamondTilt.Tests
         public void TimingModel_OffsetTwo_FairContact_Single()
         {
             var model = new TimingContactModel();
-            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(2), 2);
+            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(2), 2, 1);
 
             Assert.That(r.Outcome, Is.EqualTo(PlayOutcome.Single));
         }
@@ -75,7 +75,7 @@ namespace DiamondTilt.Tests
         public void TimingModel_OffsetThree_Foul()
         {
             var model = new TimingContactModel();
-            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(-3), 3);
+            var r = model.Evaluate(new PitchCall(4), SwingDecision.Swing(-3), 3, 1);
 
             Assert.That(r.Outcome, Is.EqualTo(PlayOutcome.Foul));
         }
@@ -84,8 +84,8 @@ namespace DiamondTilt.Tests
         public void TimingModel_Deterministic_NoRngConsumed()
         {
             var model = new TimingContactModel();
-            var a = model.Evaluate(new PitchCall(7), SwingDecision.Swing(1), 1);
-            var b = model.Evaluate(new PitchCall(7), SwingDecision.Swing(1), 1);
+            var a = model.Evaluate(new PitchCall(7), SwingDecision.Swing(1), 1, 1);
+            var b = model.Evaluate(new PitchCall(7), SwingDecision.Swing(1), 1, 1);
 
             Assert.That(a.Outcome, Is.EqualTo(b.Outcome));
             Assert.That(a.Flight.Value.ExitSpeedMps, Is.EqualTo(b.Flight.Value.ExitSpeedMps));
@@ -95,7 +95,7 @@ namespace DiamondTilt.Tests
         public void WeightedAdapter_PassesThroughTableModel()
         {
             var adapter = new WeightedContactResolver(new StubContactModel(PlayOutcome.Triple));
-            var r = adapter.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0);
+            var r = adapter.Evaluate(new PitchCall(4), SwingDecision.Swing(0), 0, 1);
 
             Assert.That(r.Outcome, Is.EqualTo(PlayOutcome.Triple));
         }
@@ -135,7 +135,7 @@ namespace DiamondTilt.Tests
                 _flight = flight;
             }
 
-            public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks)
+            public ContactResolution Evaluate(PitchCall pitch, SwingDecision swing, int absOffsetTicks, int perfectBandTicks)
                 => new ContactResolution(_outcome, _flight);
         }
     }

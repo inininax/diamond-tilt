@@ -161,3 +161,35 @@ Phase 2 physics (ball flight), contact→flight mapping, CPU AI, save integrity 
 | C168 | Review | Reviewer notes disposition: culture fix adopted, dead code removed, cosmetic policy decided+tested, nested-key audit & migrator streak-zeroing documented as accepted conservative behavior | full suite | **162/162 — reviewer PASS, 0 blocking** |
 
 ## Session total: C001–C168 ledger entries across 3 runs; final suite 162/162 green; last three independent reviews PASS with zero blocking findings.
+
+## Run 4 — C169 onward (kickoff analyzer found 1×P0 + 3×P1 + 6×P2)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C169 | Analysis | Kickoff analyzer pass → A1 walk-off missing (P0), A2 season negative counters (P1), A3 fresh-save SeasonsCompleted=1 (P1), A4 subscription bypasses clamps (P1), A5 3-outs-mid-half restore, A6 dual balance truth, A7 grant conservation break, A8 fuzz used fabricated stats, A9 silent guard exhaustion, A10 inclusive 31-day pass | findings logged | 162/162 |
+| C170 | Design | Designer D1–D10 with implementation order 9→2→3→7→6→4+10→5→1 | n/a | 162/162 |
+| C171 | Fix A9 | AutoMatch.Play returns bool completion signal (no fabricated Result on exhaustion) | AutoMatch_Guard_TerminatesOnStuckEngine_SignalsExhaustion, AutoMatch_Play_ReturnsTrue_WhenCompleted | 164/164 |
+| C172 | Fix A2 | SeasonPass.RecordMatch clamps negative hits/HRs before XP math | Season_NegativeCounters_ClampedToZero | 165/165 |
+| C173 | Fix A3 | SeasonsCompleted increments only on true rollover (non-empty previous season id) | Season_FreshState_SeasonsCompletedZero_AndIncrementsOncePerRollover | 166/166 |
+| C174-C175 | Fix A7 | Wallet conservation: grant applied amount = min(amount, headroom); at-cap grant is no-op without entry; Amount ≡ balance delta invariant restored (hash covers reality) | Wallet_GrantOverCap_ClampsAmount_DeltaEqualsAmount, Wallet_GrantAtCap_NoEntry_NoStateChange | 168/168 |
+| C176-C177 | Fix A6 | WalletReconciliation.Apply — verified ledger tail is sole truth, heals scalar mirrors; adapter fails closed on InvalidChain; empty ledger falls back to clamped scalars | Reconcile_LedgerTailWins_HealsScalars, Adapter_Load_BalancesEqualLedgerTail_RoundTrip, Adapter_CorruptLedgerChain_FailsClosed, Reconcile_EmptyLedger_ScalarsStand | 172/172 |
+| C178 | Fix A4 | SaveClamp.NormalizeSubscription: unparseable or year∉[2020,2100] expiry keys emptied (defense-in-depth vs lifetime-pass hand-edit; HMAC remains primary gate) | Clamp_SubscriptionFarFuture_NormalizedToEmpty, Clamp_SubscriptionValidNearDate_Preserved_MalformedEmptied | 174/174 |
+| C179 | Fix A10 | Exclusive expiry semantics (active while today < expiry) aligned to store norms — exactly 30 covered days; renewal on day 29 gapless to D+60 | Entitlements_ExclusiveExpiry_CoversExactlyThirtyDistinctDays, Entitlements_RenewOnFinalCoveredDay_GaplessExtension | 175/175 |
+| C180 | Fix A5 | Restore clamps Outs to ≤2 when Phase==InProgress (4-out half impossible from tampered saves) | Restore_InProgress_OutsClampedToTwo | 176/176 |
+| C181-C185 | Fix A1 (P0) | Walk-off rule: CheckWalkoff after every scoring path — home leading in bottom of final inning finishes instantly; post-decision pitches are no-ops so stats/rewards cannot inflate. TDD corrections ×3 (tie-not-win setups; bottom-half runs always belong to home) | Walkoff_HomeTakesLead_BottomFinal_FinishesImmediately, Walkoff_HomerunBottomFinal_WinsInstantly, Walkoff_NotFinalInning_Continues, Walkoff_HomeStillTrailingAfterRun_Continues | 180/180 |
+| C186-C188 | Fix A8 | Rewards fuzz now drains real simulated event stream into MatchStats; volume attribution property added (HomeHits ≡ bottom-half hit events) | Fuzz_RealVolumes_CapsAndAttributionHold (+ rewritten Fuzz_TenSeededGames) | 181/181 |
+| C189 | Checkpoint | Full suite green after D1–D10 landing | full suite | 181/181 |
+| C190-C195 | Feature | PitchCall.SpeedTier reintroduced with gameplay meaning: ctor-clamped 0..2; fast pitch shrinks miss window (−tier ticks); slow pitch widens perfect band to offset≤1; resolver takes explicit perfectBand parameter; pitcher AI mixes speeds. TDD fixes: missing using, 4-arg resolver signatures across stubs, band default semantics corrected (normal=0, slow=1) | SpeedTierTests ×5 (FastPitch_ShrinksMissWindow, SlowPitch_NormalWindow_OffsetThreeIsFoul, SlowPitch_WidensPerfectBand_OffsetOneBarrels, PitchCall_SpeedTier_ClampedToValidRange, PitcherAI_MixesSpeedTiers) | 186/186 |
+| C201-C205 | Spec gap | Mid-match save/resume suite per PROMPT.md lifecycle requirement: snapshot@N-pitches restore preserves progression; restored engine completes match; full economy resume via ledger rebuild keeps chain valid and rewards keep flowing (TDD fix: per-sequence RNG mixing to avoid decision loops) | ResumeFlowTests ×3 | 189/189 |
+| C206-C210 | Presentation | EconomyEventBus swap-buffer drain: wallet grants/spends publish typed events with reason subjects; failed mutations publish nothing; season publishes XpGained; null-bus stays silent (UI wiring lands in Unity phase) | EconomyEventBusTests ×4 | 193/193 |
+| C211 | Review | Final self-review sweep: grep purity clean, determinism suite untouched by economy changes, clamp windows documented | grep | 193/193 |
+
+## Checkpoint review #4 (run 4): verdict below.
+
+**Verdict: PASS, 0 blocking.** Reviewer verified walk-off hand-trace, exclusive-expiry boundaries, revert-sensitivity of key tests, purity greps.
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C212 | Hardening | Wallet ctor clamps initial balances to MaxBalance (reviewer note adopted) | Wallet_InitialBalanceAboveCap_ClampedToMax | **194/194 — final PASS, 0 blocking** |
+
+**Run-4 total: C169–C212 (44 cycles), suite grew 162 → 194 (+32 tests), final independent reviewer PASS with zero blocking findings.**

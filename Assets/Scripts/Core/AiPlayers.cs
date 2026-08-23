@@ -24,7 +24,8 @@ namespace DiamondTilt.Core
             int zone = mustThrowStrike
                 ? StrikeZonesList[rng.NextInt(StrikeZonesList.Length)]
                 : rng.NextInt(StrikeZone.MaxZone) + StrikeZone.MinZone;
-            return new PitchCall(zone);
+            int speedTier = rng.NextInt(PitchCall.MaxSpeedTier + 1);
+            return new PitchCall(zone, speedTier);
         }
     }
 

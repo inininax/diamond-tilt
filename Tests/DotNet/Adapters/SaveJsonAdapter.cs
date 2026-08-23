@@ -36,6 +36,8 @@ namespace DiamondTilt.Tests
                 SaveClamp.Clamp(data.Match);
                 SaveClamp.Clamp(data);
 
+                if (WalletReconciliation.Apply(data, key) == ReconcileStatus.InvalidChain) return false;
+
                 loaded = data;
                 return true;
             }

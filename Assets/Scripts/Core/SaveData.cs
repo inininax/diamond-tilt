@@ -53,11 +53,22 @@ namespace DiamondTilt.Core
             m.Inning = ClampRange(m.Inning, 1, MatchState.Innings);
             m.Balls = ClampRange(m.Balls, 0, MatchState.BallsForWalk - 1);
             m.Strikes = ClampRange(m.Strikes, 0, MatchState.StrikesForOut - 1);
-            m.Outs = ClampRange(m.Outs, 0, MatchState.StrikesForOut);
+            int maxOuts = m.Phase == (int)MatchPhase.InProgress ? MatchState.StrikesForOut - 1 : MatchState.StrikesForOut;
+            m.Outs = ClampRange(m.Outs, 0, maxOuts);
             m.AwayRuns = ClampRange(m.AwayRuns, 0, 999);
             m.HomeRuns = ClampRange(m.HomeRuns, 0, 999);
             if (m.Phase != (int)MatchPhase.Finished) m.Phase = (int)MatchPhase.InProgress;
             if (m.Result < (int)Winner.Away || m.Result > (int)Winner.Draw) m.Result = (int)Winner.Away;
+        }
+
+        public static void NormalizeSubscription(SubscriptionState s)
+        {
+            if (s == null) return;
+            if (!TimeKeys.TryParseDayKey(s.ExpiryDayKey, out var expiry)
+                || expiry.Year < 2020 || expiry.Year > 2100)
+            {
+                s.ExpiryDayKey = "";
+            }
         }
 
         public static void Clamp(SaveData d)
@@ -83,6 +94,7 @@ namespace DiamondTilt.Core
             }
 
             Normalize(d.SeasonPass);
+            NormalizeSubscription(d.Subscription);
             if (d.Missions != null)
             {
                 d.Missions.PlayCount = ClampRange(d.Missions.PlayCount, 0, 99);

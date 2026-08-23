@@ -43,19 +43,21 @@ namespace DiamondTilt.Core
 
         private readonly byte[] _key;
         private readonly List<LedgerEntry> _entries = new List<LedgerEntry>();
+        private readonly EconomyEventBus _bus;
 
         public long Coins { get; private set; }
         public long Gems { get; private set; }
         public IReadOnlyList<LedgerEntry> Entries => _entries;
 
-        public Wallet(byte[] integrityKey, long coins = 0, long gems = 0)
+        public Wallet(byte[] integrityKey, long coins = 0, long gems = 0, EconomyEventBus bus = null)
         {
             if (integrityKey == null || integrityKey.Length < 16) throw new ArgumentException("key required", nameof(integrityKey));
             if (coins < 0 || gems < 0) throw new EconomyException("initial balances cannot be negative");
 
             _key = integrityKey;
-            Coins = coins;
-            Gems = gems;
+            _bus = bus;
+            Coins = Math.Min(coins, MaxBalance);
+            Gems = Math.Min(gems, MaxBalance);
         }
 
         public void Grant(CurrencyType currency, long amount, string reason, IClock clock)
@@ -104,16 +106,27 @@ namespace DiamondTilt.Core
             if (clock == null) throw new ArgumentNullException(nameof(clock));
 
             long balance = BalanceOf(currency);
-            long next = type == LedgerEntryType.Grant ? balance + amount : balance - amount;
-            if (next < 0) throw new EconomyException($"insufficient {currency}");
-            if (next > MaxBalance) next = MaxBalance;
+            long applied = amount;
+
+            if (type == LedgerEntryType.Spend)
+            {
+                if (amount > balance) throw new EconomyException($"insufficient {currency}");
+                applied = -amount;
+            }
+            else
+            {
+                applied = Math.Min(amount, MaxBalance - balance);
+                if (applied <= 0) return;
+            }
+
+            long next = balance + applied;
 
             var entry = new LedgerEntry
             {
                 Seq = _entries.Count,
                 Type = (int)type,
                 Currency = (int)currency,
-                Amount = amount,
+                Amount = Math.Abs(applied),
                 BalanceAfter = next,
                 Reason = reason,
                 DayKey = TimeKeys.DayKey(clock.UtcNow),
@@ -123,6 +136,9 @@ namespace DiamondTilt.Core
 
             SetBalance(currency, next);
             _entries.Add(entry);
+            _bus?.Publish(
+                type == LedgerEntryType.Grant ? EconomyEventType.BalanceGranted : EconomyEventType.BalanceSpent,
+                $"{currency}:{reason}");
         }
 
         private void SetBalance(CurrencyType currency, long value)

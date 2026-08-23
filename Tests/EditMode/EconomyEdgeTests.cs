@@ -203,6 +203,14 @@ namespace DiamondTilt.Tests
         }
 
         [Test]
+        public void Wallet_InitialBalanceAboveCap_ClampedToMax()
+        {
+            var w = new Wallet(Key, coins: WalletTestHelpers.MaxBalance + 1);
+
+            Assert.That(w.Coins, Is.EqualTo(WalletTestHelpers.MaxBalance));
+        }
+
+        [Test]
         public void FixedClock_AdvanceDays_Works()
         {
             var clock = new FixedClock(BaseUtc);

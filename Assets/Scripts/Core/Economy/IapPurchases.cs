@@ -37,7 +37,7 @@ namespace DiamondTilt.Core
         {
             if (string.IsNullOrEmpty(State.ExpiryDayKey)) return false;
             if (!TimeKeys.TryParseDayKey(State.ExpiryDayKey, out var expiry)) return false;
-            return TimeKeys.Today(_clock.UtcNow) <= expiry;
+            return expiry > TimeKeys.Today(_clock.UtcNow);
         }
 
         public void ActivateOrExtend(int days)

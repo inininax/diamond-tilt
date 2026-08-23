@@ -350,23 +350,54 @@ namespace DiamondTilt.Tests
 
                 var engine = new MatchEngine(new TimingContactModel());
                 AutoMatch.PlaySelfContained(engine, Difficulty.Normal, seed);
-                stats_from(engine, out var winner, out var awayHits, out var homeHits,
-                    out var awayHrs, out var homeHrs);
 
-                var playerStats = new MatchStats();
-                playerStats.Observe(new MatchEvent(MatchEventType.HitRecorded, 1, false));
-                Assert.DoesNotThrow(() => rewards.ApplyPostMatch(winner, playerStats));
+                var stats = new MatchStats();
+                foreach (var e in engine.DrainEvents())
+                {
+                    stats.Observe(e);
+                }
 
+                int xp = 0;
+                Assert.DoesNotThrow(() => xp = rewards.ApplyPostMatch(engine.State.Result, stats));
+
+                Assert.That(xp, Is.InRange(0, SeasonRules.MaxDailyXp));
+                Assert.That(season.State.DailyXpSpent, Is.LessThanOrEqualTo(SeasonRules.MaxDailyXp));
+                Assert.That(season.State.Xp, Is.GreaterThanOrEqualTo(0));
                 Assert.That(wallet.Coins, Is.GreaterThanOrEqualTo(0));
                 Assert.That(wallet.Gems, Is.GreaterThanOrEqualTo(0));
                 Assert.That(Wallet.VerifyChain(wallet.Entries, Key), Is.True);
             }
         }
 
-        private static void stats_from(MatchEngine engine, out Winner winner, out int aH, out int hH, out int aR, out int hR)
+        [Test]
+        public void Fuzz_RealVolumes_CapsAndAttributionHold()
         {
-            winner = engine.State.Result;
-            aH = hH = aR = hR = 0;
+            for (uint seed = 950; seed < 955; seed++)
+            {
+                var (clock, wallet) = Setup();
+                var missions = new DailyMissionSystem(null, wallet, clock);
+                var season = new SeasonPassSystem(null, wallet, clock);
+
+                var engine = new MatchEngine(new TimingContactModel());
+                AutoMatch.PlaySelfContained(engine, Difficulty.Normal, seed);
+
+                var stats = new MatchStats();
+                int bottomHalfHitEvents = 0;
+                foreach (var e in engine.DrainEvents())
+                {
+                    stats.Observe(e);
+                    if ((e.Type == MatchEventType.HitRecorded || e.Type == MatchEventType.HomerunRecorded) && !e.IsTop)
+                        bottomHalfHitEvents++;
+                }
+
+                var rewards = new MatchRewardService(wallet, missions, season, clock);
+                rewards.ApplyPostMatch(engine.State.Result, stats);
+
+                Assert.That(season.State.DailyXpSpent, Is.LessThanOrEqualTo(SeasonRules.MaxDailyXp));
+                Assert.That(season.State.Xp, Is.GreaterThanOrEqualTo(0));
+                Assert.That(stats.HomeHits, Is.EqualTo(bottomHalfHitEvents),
+                    "harness must measure the real simulated match volumes");
+            }
         }
     }
 }

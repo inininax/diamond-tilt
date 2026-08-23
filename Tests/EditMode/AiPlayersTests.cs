@@ -85,10 +85,19 @@ namespace DiamondTilt.Tests
             for (uint seed = 1; seed <= 20; seed++)
             {
                 var engine = new MatchEngine(new TimingContactModel());
-                AutoMatch.PlaySelfContained(engine, Difficulty.Normal, seed);
+                bool completed = AutoMatch.PlaySelfContained(engine, Difficulty.Normal, seed);
 
+                Assert.That(completed, Is.True, $"seed {seed}");
                 Assert.That(engine.State.Phase, Is.EqualTo(MatchPhase.Finished), $"seed {seed}");
             }
+        }
+
+        [Test]
+        public void AutoMatch_Play_ReturnsTrue_WhenCompleted()
+        {
+            var engine = new MatchEngine(new TimingContactModel());
+
+            Assert.That(AutoMatch.PlaySelfContained(engine, Difficulty.Normal, 77u), Is.True);
         }
 
         [Test]
