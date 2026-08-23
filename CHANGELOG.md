@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0 — Unity project live
+
+- Unity 6000.0.82f1 project created from this repo; bootstrapper menu verified end-to-end
+- Tests moved under `Assets/Tests/EditMode/**` (mirrored folders); Unity EditMode suite green (229) alongside headless suite (236)
+- Input logic core (swipe recognizer, zone grid, touch→intent), string table ko/en, app flow controller
+- Consent-gated analytics seam; GameServices reset/difficulty lifecycle; HUD presenter; link.xml guard
+
+## 0.4.0 — Phase 3 logic core + localization
+
+- Touch input logic core: SwipeRecognizer (distance/duration windows), ZoneGrid tap mapping, flick→speed tiers, timing-offset clamping — all pure C#, fully tested
+- StringTable (ko/en) + HUD label localization; result labels (win/lose/draw)
+- AppFlowController: Boot→Title→Match→Result/Settings state machine with finished-gate navigation and event pumping
+- GameServices lifecycle refactor enabling ResetProgress; difficulty exposure
+- Follow-up: transition/boundary tests per reviewer notes
+
 ## 0.3.0 — Deployment package
 
 - Ops: RUNBOOK (launch gates, rollout/rollback, compliance, LiveOps calendar, incident response), BUILD guide (iOS/Android)

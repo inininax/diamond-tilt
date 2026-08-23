@@ -37,7 +37,7 @@ namespace DiamondTilt.Core.EditorTools
                     new[] { "DiamondTilt.Core", "DiamondTilt.Presentation" }, Array.Empty<string>()));
 
             AsmdefWriter.WriteIfMissing(
-                "Assets/Tests/EditMode/DiamondTilt.Tests.EditMode.asmdef",
+                "Tests/EditMode/DiamondTilt.Tests.EditMode.asmdef",
                 Json(false, "DiamondTilt.Tests.EditMode",
                     new[] { "DiamondTilt.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner" },
                     new[] { "nunit.framework.dll" },

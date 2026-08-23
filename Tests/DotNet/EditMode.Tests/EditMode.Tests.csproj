@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="../../../Tests/EditMode/**/*.cs" Link="EditMode/%(Filename)%(Extension)" />
+    <Compile Include="../../../Assets/Tests/EditMode/**/*.cs" Link="EditMode/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../Adapters/**/*.cs" Link="Adapters/%(Filename)%(Extension)" />
   </ItemGroup>
 

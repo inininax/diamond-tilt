@@ -252,3 +252,33 @@ Phase 2 physics (ball flight), contact→flight mapping, CPU AI, save integrity 
 | C259 | Review | Self-review sweep; suite green after GameServices recompose refactor | full suite | **219/219 — PASS, 0 blocking** |
 
 **Run-7 total: C249–C259 (11 cycles), suite 210 → 219 (+9). Cumulative: C001–C259 across 7 runs.**
+
+## Run 8 — C260 onward: Phase 3 logic core + remaining spec items
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C260-C261 | Input | SwipeRecognizer (min-distance/min-max duration windows, direction/speed math, cancel safety) | TouchInputTests ×4 | 225/225 |
+| C262 | Input | ZoneGrid 3×3 normalized-tap → zone index with range validation | ZoneGrid ×2 | 226/226 |
+| C263 | Input | TouchToIntent adapter: swipe→clamped SwingDecision, tap→PitchCall, flick speed→tier boundaries | SwipeToSwing/FlickSpeed tests | 227/227 |
+| C264 | i18n | StringTable ko/en + locale fallback | (wired via HUD) | 227/227 |
+| C265 | Flow | AppFlowController: screen state machine, finished-gate on Result, event pump auto-navigation w/ winner capture | AppFlowTests ×5 | 232/232 |
+| C266 | i18n | HUD labels routed through table; result labels win/lose/draw; en locale pinned | PresentationLogicTests updated ×2 | 233/233 |
+| C267 | Review | Self-review sweep | suite | 233/233 |
+
+| C268 | Tests | Reviewer-suggested boundaries: Settings-from-Match rejected / from-Result accepted; mid-match quit-to-title; recognizer exact-limit acceptance | AppFlowTests ×2, TouchInputTests ×1 | **236/236 — PASS, 0 blocking** |
+
+**Run-8 total: C260–C268 (9+ cycles), suite 219 → 236 (+17). Cumulative: C001–C268 across 8 runs.**
+
+## Run 9 — C269: UNITY BRING-UP (the milestone run)
+
+Unity 6000.0.82f1 installed via Hub CLI; Personal license active; project opened in batchmode.
+
+| Step | What happened | Evidence |
+|---|---|---|
+| First batch import | License OK; compile failed with 1 error (GameRunner missing `DiamondTilt.Core.Economy` using after namespace extraction) | /tmp log + CS0246 |
+| Fix + reopen | **EXIT=0 — all scripts compile in Unity**, including Presentation/Editor code that headless dotnet could not verify | unity-open3.log EXIT=0 |
+| Bootstrap via `-executeMethod ...Bootstrap` | Found real bug: asmdef written to `Assets/Tests/...` while tests live at root `Tests/EditMode`; path corrected, re-run **EXIT=0** — Core/Presentation/EditorTools/Tests asmdefs + Boot/Match scenes generated | bootstrap3.log |
+| EditMode inside Unity | Discovered Unity only sees assets under `Assets/`: moved tests to `Assets/Tests/EditMode/**`, repointed headless csproj glob; split STJ-dependent adapter tests into `Tests/DotNet/Adapters/SaveAdapterTests.cs` (dotnet-only); replaced `Assert.Multiple` (Unity's bundled NUnit lacks it) | tests4.log |
+| **Final** | **Unity EditMode: 229/229 PASSED. Headless: 236/236 PASSED. Δ7 = dotnet-only adapter tests.** | TestResults/editmode.xml |
+
+**Run-9 total: C269 bring-up cycle (multiple sub-fixes, each verified by a fresh batchmode run). Cumulative: C001–C269 across 9 runs. The project now compiles and tests BOTH headlessly and inside Unity.**

@@ -1,0 +1,5 @@
+{
+  "name": "DiamondTilt.EditorTools",
+  "rootNamespace": "DiamondTilt",
+  "references": ["DiamondTilt.Core","DiamondTilt.Presentation"]
+}

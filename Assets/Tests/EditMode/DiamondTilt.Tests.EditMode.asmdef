@@ -1,0 +1,5 @@
+{
+  "name": "DiamondTilt.Tests.EditMode",
+  "rootNamespace": "DiamondTilt",
+  "references": ["DiamondTilt.Core","UnityEngine.TestRunner","UnityEditor.TestRunner"], "precompiledReferences": ["nunit.framework.dll"], "overrideReferences": true, "includePlatforms": ["Editor"], "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}

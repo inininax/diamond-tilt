@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using DiamondTilt.Core;
+using DiamondTilt.Core.Economy;
 using UnityEngine;
 
 namespace DiamondTilt.Presentation
@@ -19,7 +20,7 @@ namespace DiamondTilt.Presentation
             byte[] key = SaveIntegrity.DeriveKey(DeviceSeed.Value);
             SaveData save = SaveStorage.LoadOrDefault(key);
             _services = new GameServices(save, key, clock);
-            _services.OnSaveRequested += () => SaveStorage.Store(_services, key);
+            _services.SaveRequested += () => SaveStorage.Store(_services, key);
 
             DontDestroyOnLoad(gameObject);
         }

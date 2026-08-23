@@ -24,7 +24,8 @@ namespace DiamondTilt.Tests
 
             var hud = HudMapper.From(engine.State);
 
-            Assert.That(hud.InningLabel, Is.EqualTo("2말"));
+            Assert.That(hud.InningLabel(), Is.EqualTo("2말"));
+            Assert.That(hud.InningLabel(StringTable.English), Is.EqualTo("2Bot"));
             Assert.That(hud.CountLabel, Is.EqualTo("2-1"));
             Assert.That(hud.ScoreLabel, Is.EqualTo("0 : 3"));
             Assert.That(hud.BaseRunnerCount, Is.EqualTo(1));
@@ -50,6 +51,23 @@ namespace DiamondTilt.Tests
 
             Assert.That(hud.Phase, Is.EqualTo(MatchPhase.Finished));
             Assert.That(hud.ScoreLabel, Is.EqualTo("0 : 0"));
+            Assert.That(hud.ResultLabel(StringTable.Korean), Is.EqualTo("무승부"));
+        }
+
+        [Test]
+        public void HudMapper_ResultLabel_WinLoseByScore()
+        {
+            var engine = new MatchEngine(new TimingContactModel());
+            engine.State.Phase = MatchPhase.Finished;
+            engine.State.HomeRuns = 3;
+            engine.State.AwayRuns = 1;
+            var hudWin = HudMapper.From(engine.State);
+
+            engine.State.AwayRuns = 5;
+            var hudLose = HudMapper.From(engine.State);
+
+            Assert.That(hudWin.ResultLabel(StringTable.Korean), Is.EqualTo("승리!"));
+            Assert.That(hudLose.ResultLabel(StringTable.Korean), Is.EqualTo("패배"));
         }
         [Test]
         public void GameServices_ResetProgress_ZeroesProgress_KeepsSubscriptionAndDifficulty()

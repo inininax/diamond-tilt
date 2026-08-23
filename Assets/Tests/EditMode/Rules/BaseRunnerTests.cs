@@ -132,13 +132,10 @@ namespace DiamondTilt.Tests
             {
                 Assert.Throws<ArgumentOutOfRangeException>(() =>
                     BaseRunnerEngine.AdvanceAllOnHit(engine.State, new List<MatchEvent>(), bases));
-                Assert.Multiple(() =>
-                {
-                    Assert.That(engine.State.FirstBase, Is.True);
-                    Assert.That(engine.State.SecondBase, Is.True);
-                    Assert.That(engine.State.ThirdBase, Is.True);
-                    Assert.That(engine.State.AwayRuns, Is.EqualTo(0));
-                });
+                Assert.That(engine.State.FirstBase, Is.True);
+                Assert.That(engine.State.SecondBase, Is.True);
+                Assert.That(engine.State.ThirdBase, Is.True);
+                Assert.That(engine.State.AwayRuns, Is.EqualTo(0));
             }
         }
     }

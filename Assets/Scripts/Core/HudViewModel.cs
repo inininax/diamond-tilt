@@ -16,9 +16,18 @@ namespace DiamondTilt.Core
         public int HomeRuns { get; set; }
         public MatchPhase Phase { get; set; }
 
-        public string InningLabel => IsTop ? $"{Inning}초" : $"{Inning}말";
+        public string InningLabel() => InningLabel(StringTable.Default);
+        public string InningLabel(StringTable table)
+            => IsTop
+                ? $"{Inning}{table.Get("hud.inning.top.suffix")}"
+                : $"{Inning}{table.Get("hud.inning.bottom.suffix")}";
         public string CountLabel => $"{Balls}-{Strikes}";
         public string ScoreLabel => $"{AwayRuns} : {HomeRuns}";
+        public string ResultLabel(StringTable table)
+            => table.Get(Phase != MatchPhase.Finished ? "hud.inning.top.suffix"
+                : HomeRuns > AwayRuns ? "hud.result.win"
+                : HomeRuns < AwayRuns ? "hud.result.lose"
+                : "hud.result.draw");
         public int BaseRunnerCount => (FirstBase ? 1 : 0) + (SecondBase ? 1 : 0) + (ThirdBase ? 1 : 0);
     }
 
