@@ -66,9 +66,10 @@ Tests/
 
 ## In-progress work (as of last session)
 
-- Phase 1 rules engine is implemented and verified **headlessly** (no Unity needed): plain-C# core in `Assets/Scripts/Core/` (MatchEngine, BaseRunnerEngine, MatchState, seeded RNG) with NUnit tests in `Tests/EditMode/`. Run them anywhere via `dotnet test Tests/DotNet/EditMode.Tests/EditMode.Tests.csproj` (needs .NET SDK; Unity not required). 36/36 green as of this session.
-- Agent pipeline exists: role definitions in `.agents/agents/*.md` (analyzer → designer → developer → reviewer); cycle repeats until the reviewer reports zero blocking findings. Pipeline usage is specified in `PROMPT.md` ("Agent pipeline").
-- **Still blocked for Editor work:** the Unity project does not exist yet (Unity not installed on this machine; verified 2026-08-23). Next action: create/open the project in Unity Hub, then execute `PROMPT.md` Phase 0 wiring (asmdefs so `Tests/EditMode` also runs inside Unity) and continue to Phase 2 (ball flight + CPU AI).
+- Phase 1 (rules engine) + Phase 2 core (ball flight physics, contact→flight mapping, CPU AI, save integrity) are implemented and verified **headlessly**: plain-C# core in `Assets/Scripts/Core/` with NUnit tests in `Tests/EditMode/`. Run via `dotnet test Tests/DotNet/EditMode.Tests/EditMode.Tests.csproj` (needs .NET SDK; Unity not required). 104/104 green; pipeline log in `Docs/pipeline-log.md` (105+ cycles, reviewer PASS).
+- Determinism contract is pinned by tests: same seed → identical event stream; weighted contact model consumes exactly 1 RNG draw per contact; scores ≡ Σ RunScored events.
+- Security bar implemented for saves: HMAC-SHA256 envelope, clamp-before-use, schema-version gate, quarantine-not-crash (`Docs/SECURITY.md`).
+- **Still blocked for Editor work:** the Unity project does not exist yet (Unity not installed on this machine; verified 2026-08-23). Next action: create/open the project in Unity Hub, then execute `PROMPT.md` Phase 0 wiring (asmdefs so `Tests/EditMode` also runs inside Unity) and continue to Phase 3 (touch input adapters).
 - Until the Unity project exists, do not fabricate scenes/prefabs or claim Editor builds/tests were run.
 
 ## Conventions

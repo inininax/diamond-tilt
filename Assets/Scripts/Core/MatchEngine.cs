@@ -5,10 +5,9 @@ namespace DiamondTilt.Core
 {
     public sealed class MatchEngine
     {
-        private const int MaxContactOffsetTicks = 1;
-        private const int FoulOffsetHigh = 3;
+        public const int MissOffsetThresholdTicks = 4;
 
-        private readonly IContactModel _contactModel;
+        private readonly IContactResolver _contactResolver;
         private List<MatchEvent> _events = new List<MatchEvent>();
         private List<MatchEvent> _spare = new List<MatchEvent>();
 
@@ -18,9 +17,13 @@ namespace DiamondTilt.Core
         {
         }
 
-        public MatchEngine(IContactModel contactModel)
+        public MatchEngine(IContactModel contactModel) : this(new WeightedContactResolver(contactModel))
         {
-            _contactModel = contactModel;
+        }
+
+        public MatchEngine(IContactResolver contactResolver)
+        {
+            _contactResolver = contactResolver;
         }
 
         public IReadOnlyList<MatchEvent> DrainEvents()
@@ -46,9 +49,13 @@ namespace DiamondTilt.Core
 
             int offset = swing.TimingOffsetTicks;
             int abs = offset == int.MinValue ? int.MaxValue : offset < 0 ? -offset : offset;
-            if (abs <= MaxContactOffsetTicks) ResolveContact();
-            else if (abs <= FoulOffsetHigh) ResolveFoul();
-            else AddStrike();
+            if (abs >= MissOffsetThresholdTicks)
+            {
+                AddStrike();
+                return;
+            }
+
+            ResolveContact(pitch, swing, abs);
         }
 
         private void ResolveBall()
@@ -82,13 +89,20 @@ namespace DiamondTilt.Core
             _events.Add(new MatchEvent(MatchEventType.StrikeCalled, State.Inning, State.IsTop));
         }
 
-        private void ResolveContact()
+        private void ResolveContact(PitchCall pitch, SwingDecision swing, int absOffsetTicks)
         {
-            PlayOutcome outcome = _contactModel.Roll();
-            switch (outcome)
+            ContactResolution resolution = _contactResolver.Evaluate(pitch, swing, absOffsetTicks);
+            switch (resolution.Outcome)
             {
+                case PlayOutcome.Foul:
+                    ResolveFoul();
+                    break;
                 case PlayOutcome.Grounder:
                     ResolveGrounder();
+                    break;
+                case PlayOutcome.Homerun:
+                case PlayOutcome.DeepFly when ClearsWall(resolution):
+                    ResolveHit(4);
                     break;
                 case PlayOutcome.DeepFly:
                     ResolveDeepFly();
@@ -103,20 +117,23 @@ namespace DiamondTilt.Core
                 case PlayOutcome.Triple:
                     ResolveHit(3);
                     break;
-                case PlayOutcome.Homerun:
-                    ResolveHit(4);
-                    break;
-                case PlayOutcome.Foul:
-                    ResolveFoul();
-                    break;
                 default:
-                    throw new InvalidOperationException($"Unhandled contact outcome: {outcome}");
+                    throw new InvalidOperationException($"Unhandled contact outcome: {resolution.Outcome}");
             }
+        }
+
+        private static bool ClearsWall(ContactResolution resolution)
+        {
+            if (resolution.Outcome == PlayOutcome.Homerun) return true;
+            return resolution.Flight.HasValue && BallFlight.ClearsWallForHomerun(resolution.Flight.Value);
         }
 
         private void ResolveHit(int bases)
         {
             BaseRunnerEngine.AdvanceAllOnHit(State, _events, bases);
+            _events.Add(new MatchEvent(
+                bases >= 4 ? MatchEventType.HomerunRecorded : MatchEventType.HitRecorded,
+                State.Inning, State.IsTop));
             State.ResetBatterCount();
             CheckHalfInningEnd();
         }

@@ -24,6 +24,8 @@ namespace DiamondTilt.Core
         RunnerOut,
         RunnerAdvanced,
         RunScored,
+        HitRecorded,
+        HomerunRecorded,
         HalfInningEnded,
         MatchEnded
     }

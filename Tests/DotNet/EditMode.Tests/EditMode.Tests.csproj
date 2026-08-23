@@ -15,10 +15,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="../../../Tests/EditMode/**/*.cs" Link="EditMode/%(Filename)%(Extension)" />
+    <Compile Include="../Adapters/**/*.cs" Link="Adapters/%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

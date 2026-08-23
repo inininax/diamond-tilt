@@ -77,7 +77,7 @@ namespace DiamondTilt.Tests
         [Test]
         public void Foul_WithTwoStrikes_DoesNotAddThird()
         {
-            var engine = MatchTestHarness.Engine();
+            var engine = MatchTestHarness.Engine(PlayOutcome.Foul);
             MatchTestHarness.TakeStrike(engine);
             MatchTestHarness.TakeStrike(engine);
             engine.ThrowPitch(new PitchCall(MatchTestHarness.CenterZone), SwingDecision.Swing(2));
