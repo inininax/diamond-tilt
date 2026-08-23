@@ -34,13 +34,32 @@ namespace DiamondTilt.Tests
 
             services.Wallet.Grant(CurrencyType.Gems, 100, "r", services.Clock);
             services.Shop.TryPurchase("uniform_home", "ord-1", services.Wallet, services.Clock);
+            services.SeasonPass.RecordMatch(true, 3, 1);
+            services.Entitlements.ActivateOrExtend(30);
             services.WriteBackTo(save);
 
             var revived = new GameServices(save, Key, new FixedClock(BaseUtc));
 
             Assert.That(revived.Wallet.Gems, Is.EqualTo(0));
+            Assert.That(revived.SeasonPass.State.Xp, Is.GreaterThan(0));
+            Assert.That(revived.Entitlements.HasActiveSubscription(), Is.True);
             Assert.That(revived.Shop.TryPurchase("uniform_home", "ord-1", revived.Wallet, new FixedClock(BaseUtc)),
                 Is.EqualTo(PurchaseResult.DuplicateOrder));
+        }
+
+        [Test]
+        public void SaveRequested_EventFires_OnManualRequest()
+        {
+            var save = new SaveData();
+            SaveClamp.MigrateToCurrent(save);
+            var services = new GameServices(save, Key, new FixedClock(BaseUtc));
+
+            int fires = 0;
+            services.SaveRequested += () => fires++;
+            services.RequestManualSave();
+            services.RequestManualSave();
+
+            Assert.That(fires, Is.EqualTo(2));
         }
 
         [Test]

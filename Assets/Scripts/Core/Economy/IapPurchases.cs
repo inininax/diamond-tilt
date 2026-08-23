@@ -16,9 +16,10 @@ namespace DiamondTilt.Core.Economy
                && receiptPayload != "TAMPERED";
     }
 
+    [Serializable]
     public sealed class SubscriptionState
     {
-        public string ExpiryDayKey { get; set; } = "";
+        public string ExpiryDayKey = "";
     }
 
     public sealed class EntitlementService

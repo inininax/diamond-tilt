@@ -123,7 +123,7 @@ namespace DiamondTilt.Tests
         public void Adapter_TamperedEnvelope_Rejected_EndToEnd()
         {
             var data = new SaveData { Match = new MatchSnapshot { HomeRuns = 5 } };
-            string payload = JsonSerializer.Serialize(data);
+            string payload = JsonSerializer.Serialize(data, SaveJsonAdapter.Options);
             var envelope = new SaveEnvelope { Payload = payload.Replace("5", "500"), Tag = SaveIntegrity.Tag(payload, Key) };
             string json = JsonSerializer.Serialize(envelope);
 
@@ -145,7 +145,7 @@ namespace DiamondTilt.Tests
         public void NoPiiAudit_SerializedKeysWhitelisted()
         {
             var data = new SaveData { Match = new MatchSnapshot(), Wins = 1, Losses = 2, DifficultyTier = 1 };
-            var doc = JsonDocument.Parse(JsonSerializer.Serialize(data));
+            var doc = JsonDocument.Parse(JsonSerializer.Serialize(data, SaveJsonAdapter.Options));
 
             foreach (var prop in doc.RootElement.EnumerateObject())
             {

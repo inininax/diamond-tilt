@@ -3,16 +3,17 @@ using System.Collections.Generic;
 
 namespace DiamondTilt.Core.Economy
 {
+    [Serializable]
     public sealed class SeasonPassState
     {
-        public string SeasonId { get; set; } = "";
-        public int Xp { get; set; }
-        public int DailyXpSpent { get; set; }
-        public string DailyXpDay { get; set; } = "";
-        public List<int> ClaimedFreeTiers { get; set; } = new List<int>();
-        public List<int> ClaimedPremiumTiers { get; set; } = new List<int>();
-        public bool PremiumOwned { get; set; }
-        public int SeasonsCompleted { get; set; }
+        public string SeasonId = "";
+        public int Xp;
+        public int DailyXpSpent;
+        public string DailyXpDay = "";
+        public List<int> ClaimedFreeTiers = new List<int>();
+        public List<int> ClaimedPremiumTiers = new List<int>();
+        public bool PremiumOwned;
+        public int SeasonsCompleted;
     }
 
     public static class SeasonRules

@@ -24,17 +24,18 @@ namespace DiamondTilt.Core.Economy
         }
     }
 
+    [Serializable]
     public sealed class LedgerEntry
     {
-        public long Seq { get; set; }
-        public int Type { get; set; }
-        public int Currency { get; set; }
-        public long Amount { get; set; }
-        public long BalanceAfter { get; set; }
-        public string Reason { get; set; } = "";
-        public string DayKey { get; set; } = "";
-        public string PrevHash { get; set; } = "";
-        public string Hash { get; set; } = "";
+        public long Seq;
+        public int Type;
+        public int Currency;
+        public long Amount;
+        public long BalanceAfter;
+        public string Reason = "";
+        public string DayKey = "";
+        public string PrevHash = "";
+        public string Hash = "";
     }
 
     public sealed class Wallet

@@ -3,15 +3,16 @@ using System.Collections.Generic;
 
 namespace DiamondTilt.Core.Economy
 {
+    [Serializable]
     public sealed class DailyMissionState
     {
-        public string DayKey { get; set; } = "";
-        public int PlayCount { get; set; }
-        public int HitCount { get; set; }
-        public int HrCount { get; set; }
-        public int WinCount { get; set; }
-        public List<string> ClaimedIds { get; set; } = new List<string>();
-        public int AdBonusesToday { get; set; }
+        public string DayKey = "";
+        public int PlayCount;
+        public int HitCount;
+        public int HrCount;
+        public int WinCount;
+        public List<string> ClaimedIds = new List<string>();
+        public int AdBonusesToday;
     }
 
     public static class MissionRules

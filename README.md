@@ -32,7 +32,7 @@ The gameplay/economy core is plain C# with zero `UnityEngine` dependencies — t
 ## Quickstart (no Unity required)
 
 ```sh
-sh Scripts/run-tests.sh        # 194+ EditMode tests via dotnet
+sh Scripts/run-tests.sh        # 208 EditMode tests via dotnet
 ```
 
 Requires the .NET SDK. Unity-side work (scenes, prefabs, device builds, store SDKs) is tracked in `AGENTS.md` → "In-progress work".
@@ -47,9 +47,11 @@ Requires the .NET SDK. Unity-side work (scenes, prefabs, device builds, store SD
 | `Assets/Scripts/Core/` | Plain-C# domain (rules + economy), Unity-free |
 | `Tests/EditMode/` | NUnit suite mirroring production modules |
 | `Tests/DotNet/` | Headless test harness (csproj link-compiles Core) |
-| `Docs/` | SECURITY, MONETIZATION, pipeline-log |
+| `Docs/` | RUNBOOK (ops), BUILD (store builds), SECURITY, MONETIZATION, pipeline-log |
 | `Scripts/run-tests.sh` | One-command test gate (CI uses this) |
 
 ## Status
 
-Rules engine, ball-flight physics, CPU AI, save integrity, and monetization meta are complete and reviewed headlessly (pipeline log: `Docs/pipeline-log.md`). Next: create the Unity project, wire asmdefs + touch input (Phase 3), then store SDKs behind existing seams.
+Rules engine, ball-flight physics, CPU AI, save integrity, monetization meta, device persistence adapter (`Assets/Scripts/Presentation/SaveStorage.cs`), and a one-command Unity bootstrap are complete; ops runbook + build guide live in `Docs/`. Team roles: `.agents/team-roster.md`. Full history: `Docs/pipeline-log.md`.
+
+Next human steps (Unity Editor required): create project via Unity Hub → run `Diamond Tilt → Bootstrap Project` menu → PlayMode smoke → store builds per `Docs/BUILD.md`.

@@ -15,6 +15,10 @@ namespace DiamondTilt.Core
         public IapPurchaseService Iap { get; }
         public MatchRewardService Rewards { get; }
 
+        public event Action SaveRequested;
+
+        public void RequestManualSave() => SaveRequested?.Invoke();
+
         public GameServices(SaveData save, byte[] integrityKey, IClock clock, IReceiptValidator receiptValidator = null)
         {
             if (save == null) throw new ArgumentNullException(nameof(save));
@@ -47,6 +51,9 @@ namespace DiamondTilt.Core
             save.PurchaseOrders = new System.Collections.Generic.List<string>(Shop.CompletedOrders);
             save.OwnedShopItems = new System.Collections.Generic.List<string>(Shop.OwnedItems);
             save.IapOrders = new System.Collections.Generic.List<string>(Iap.CompletedOrders);
+            save.SeasonPass = SeasonPass.State;
+            save.Missions = Missions.State;
+            save.Subscription = Entitlements.State;
         }
     }
 }

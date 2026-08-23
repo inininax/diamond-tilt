@@ -4,44 +4,46 @@ using System.Collections.Generic;
 
 namespace DiamondTilt.Core
 {
+    [Serializable]
     public sealed class MatchSnapshot
     {
-        public int Inning { get; set; }
-        public bool IsTop { get; set; }
-        public int Balls { get; set; }
-        public int Strikes { get; set; }
-        public int Outs { get; set; }
-        public bool FirstBase { get; set; }
-        public bool SecondBase { get; set; }
-        public bool ThirdBase { get; set; }
-        public int AwayRuns { get; set; }
-        public int HomeRuns { get; set; }
-        public int Phase { get; set; }
-        public int Result { get; set; }
+        public int Inning;
+        public bool IsTop;
+        public int Balls;
+        public int Strikes;
+        public int Outs;
+        public bool FirstBase;
+        public bool SecondBase;
+        public bool ThirdBase;
+        public int AwayRuns;
+        public int HomeRuns;
+        public int Phase;
+        public int Result;
     }
 
+    [Serializable]
     public sealed class SaveData
     {
         public const int V1SchemaVersion = 1;
         public const int CurrentSchemaVersion = 2;
 
-        public int SchemaVersion { get; set; } = CurrentSchemaVersion;
-        public MatchSnapshot Match { get; set; } = new MatchSnapshot();
-        public int Wins { get; set; }
-        public int Losses { get; set; }
-        public int DifficultyTier { get; set; }
-        public int CurrentStreak { get; set; }
-        public int BestStreak { get; set; }
+        public int SchemaVersion = CurrentSchemaVersion;
+        public MatchSnapshot Match = new MatchSnapshot();
+        public int Wins;
+        public int Losses;
+        public int DifficultyTier;
+        public int CurrentStreak;
+        public int BestStreak;
 
-        public long WalletCoins { get; set; }
-        public long WalletGems { get; set; }
-        public List<LedgerEntry> Ledger { get; set; } = new List<LedgerEntry>();
-        public SeasonPassState SeasonPass { get; set; } = new SeasonPassState();
-        public DailyMissionState Missions { get; set; } = new DailyMissionState();
-        public SubscriptionState Subscription { get; set; } = new SubscriptionState();
-        public List<string> PurchaseOrders { get; set; } = new List<string>();
-        public List<string> IapOrders { get; set; } = new List<string>();
-        public List<string> OwnedShopItems { get; set; } = new List<string>();
+        public long WalletCoins;
+        public long WalletGems;
+        public List<LedgerEntry> Ledger = new List<LedgerEntry>();
+        public SeasonPassState SeasonPass = new SeasonPassState();
+        public DailyMissionState Missions = new DailyMissionState();
+        public SubscriptionState Subscription = new SubscriptionState();
+        public List<string> PurchaseOrders = new List<string>();
+        public List<string> IapOrders = new List<string>();
+        public List<string> OwnedShopItems = new List<string>();
     }
 
     public static class SaveClamp

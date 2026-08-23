@@ -223,3 +223,18 @@ Phase 2 physics (ball flight), contact→flight mapping, CPU AI, save integrity 
 | C234 | Security-test | GameServices scalar-fallback path (empty ledger + balances>0) covered — off-chain wallet documented as client-trust model per SECURITY.md | GameServices_EmptyLedgerWithScalars_FallsBackToScalarWallet | **207/207 — final PASS, 0 blocking** |
 
 **Run-5 total: C213–C234 (22 cycles), suite 194 → 207 (+13 tests). Architecture gaps closed: CI gate, data-driven balance configs w/ validation, Economy bounded-context namespace, composition root, repo hygiene (README/notices/test mirroring). Cumulative: C001–C234 across 5 runs.**
+
+## Run 6 — C235 onward: deployment package (ops runbook, build guide, Unity bootstrap, team roster)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C235 | Ops | Docs/RUNBOOK.md: launch gates checklist, staged rollout/rollback flow, store assets, compliance (COPPA/data-deletion), LiveOps calendar, incident response table | n/a | 207/207 |
+| C236 | Build | Docs/BUILD.md: IL2CPP/.NET Standard/orientation, Android AAB+keystore policy, iOS signing/TestFlight, MAJOR.MINOR.PATCH scheme, pre-submission sequence | n/a | 207/207 |
+| C237 | Bootstrap | Assets/Scripts/Editor/DiamondTiltBootstrapper.cs + AsmdefWriter.cs: one-menu asmdef/player-settings/scene generation; Tests asmdef name matches InternalsVisibleTo("DiamondTilt.Tests.EditMode") prepared in run 5 | manual-step (Editor-only) | 207/207 |
+| C238 | Presentation | GameRunner composition-root usage (GameServices wiring, 60fps cap) + UnityClock + DeviceSeed(PlayerPrefs); SaveStorage persistence adapter: HMAC envelope round-trip mirroring headless adapter, atomic tmp-write, quarantine-on-anything | manual-step | 207/207 |
+| C239 | Team | .agents/team-roster.md: delivery pipeline seats mapped to agent briefs + Release Manager / QA / LiveOps / Security Officer service roles with working agreements | n/a | 207/207 |
+| C240 | Analysis | Deployment-readiness analyzer pass → D-1..D-8 (crash/deletion undecided, doc count drift, bootstrapper ordering risk…) | findings logged | 207/207 |
+| C241-C245 | Fixes | RUNBOOK/BUILD crash-reporting decision + data-deletion path + remote-config adoption order documented; README test-count/docs-map synced; AGENTS.md counts synced; RUNBOOK anchor fixed | docs consistency | 207/207 |
+| C246-C248 | Bugfix | Reviewer-blocking trio on Unity-side persistence: (1) DTOs still properties+non-serializable → all six persisted types converted to public fields w/ [Serializable]; JsonUtility contract pinned by reflection contract test; STJ IncludeFields option in adapter so headless suite sees field truth. (2) WriteBackTo dropped season/missions/subscription/match state → full-state copy incl. live State refs + revived-instance assertions. (3) EditorTools asmdef could never see Assembly-CSharp GameRunner → DiamondTilt.Presentation asmdef generated and referenced; tests asmdef gains overrideReferences convention | SerializationContractTests ×2, GameServices writeback state assertions extended, SaveRequested event test | **210/210 — final reviewer PASS, 0 blocking** |
+
+**Run-6 total: C235–C248 (14 cycles), suite 207 → 210 (+3). Deployment package complete; remaining store submission steps are physical/manual per RUNBOOK §0. Cumulative: C001–C248 across 6 runs.**

@@ -13,10 +13,12 @@ namespace DiamondTilt.Tests
 
     public static class SaveJsonAdapter
     {
+        internal static readonly JsonSerializerOptions Options = new JsonSerializerOptions { IncludeFields = true };
+
         public static string SerializeEnvelope(SaveData data, byte[] key)
         {
-            string payload = JsonSerializer.Serialize(data);
-            return JsonSerializer.Serialize(new SaveEnvelope { Payload = payload, Tag = SaveIntegrity.Tag(payload, key) });
+            string payload = JsonSerializer.Serialize(data, Options);
+            return JsonSerializer.Serialize(new SaveEnvelope { Payload = payload, Tag = SaveIntegrity.Tag(payload, key) }, Options);
         }
 
         public static bool TryLoad(string json, byte[] key, out SaveData loaded)
@@ -25,11 +27,11 @@ namespace DiamondTilt.Tests
             if (string.IsNullOrEmpty(json)) return false;
             try
             {
-                var envelope = JsonSerializer.Deserialize<SaveEnvelope>(json);
+                var envelope = JsonSerializer.Deserialize<SaveEnvelope>(json, Options);
                 if (envelope?.Payload == null || envelope.Tag == null) return false;
                 if (!SaveIntegrity.Verify(envelope.Payload, envelope.Tag, key)) return false;
 
-                var data = JsonSerializer.Deserialize<SaveData>(envelope.Payload);
+                var data = JsonSerializer.Deserialize<SaveData>(envelope.Payload, Options);
                 if (data == null || data.Match == null) return false;
                 if (!SaveClamp.IsKnownSchema(data.SchemaVersion)) return false;
                 if (!SaveClamp.MigrateToCurrent(data)) return false;
