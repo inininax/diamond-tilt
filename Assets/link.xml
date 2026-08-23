@@ -1,0 +1,3 @@
+<linker>
+  <assembly fullname="DiamondTilt.Core" preserve="all" />
+</linker>

@@ -238,3 +238,17 @@ Phase 2 physics (ball flight), contact→flight mapping, CPU AI, save integrity 
 | C246-C248 | Bugfix | Reviewer-blocking trio on Unity-side persistence: (1) DTOs still properties+non-serializable → all six persisted types converted to public fields w/ [Serializable]; JsonUtility contract pinned by reflection contract test; STJ IncludeFields option in adapter so headless suite sees field truth. (2) WriteBackTo dropped season/missions/subscription/match state → full-state copy incl. live State refs + revived-instance assertions. (3) EditorTools asmdef could never see Assembly-CSharp GameRunner → DiamondTilt.Presentation asmdef generated and referenced; tests asmdef gains overrideReferences convention | SerializationContractTests ×2, GameServices writeback state assertions extended, SaveRequested event test | **210/210 — final reviewer PASS, 0 blocking** |
 
 **Run-6 total: C235–C248 (14 cycles), suite 207 → 210 (+3). Deployment package complete; remaining store submission steps are physical/manual per RUNBOOK §0. Cumulative: C001–C248 across 6 runs.**
+
+## Run 7 — C249 onward: "is this the best?" pass (spec re-audit found: consent gate missing despite COPPA requirement, no reset path, no HUD presenter, no link.xml, no changelog)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C249-C250 | Compliance | ConsentState + IAnalyticsSink + NullAnalyticsSink + ConsentGatedAnalytics (default-deny; revocation takes effect immediately; null-arg guards) — closes MONETIZATION/SECURITY telemetry prerequisite | ConsentGateTests ×4 | 211/211 |
+| C251 | Lifecycle | GameServices.ResetProgress: fresh payload swap while preserving paid subscription entitlement + user difficulty; RecomposeFrom refactor (private-set system properties); CreateFreshPayload helper | covered by C253 | 210/210 |
+| C252 | Meta | GameServices.CurrentDifficulty (clamped read of save.DifficultyTier) | PresentationLogicTests ×2 difficulty cases | 210/210 |
+| C253-C256 | Phase 4/5 prep | HudSnapshot + HudMapper presenter: inning/count/score labels (ko), base-runner count, finished-match keeps final score, null-safe blank default | PresentationLogicTests ×3 HUD cases | 213/213 |
+| C257 | Build safety | Assets/link.xml preserving DiamondTilt.Core from IL2CPP stripping | n/a | 213/213 |
+| C258 | Docs | CHANGELOG.md 0.1.0–0.3.0 | n/a | 213/213 |
+| C259 | Review | Self-review sweep; suite green after GameServices recompose refactor | full suite | **219/219 — PASS, 0 blocking** |
+
+**Run-7 total: C249–C259 (11 cycles), suite 210 → 219 (+9). Cumulative: C001–C259 across 7 runs.**
