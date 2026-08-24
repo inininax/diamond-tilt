@@ -34,7 +34,8 @@ namespace DiamondTilt.Core.EditorTools
             AsmdefWriter.WriteIfMissing(
                 "Assets/Scripts/Editor/DiamondTilt.EditorTools.asmdef",
                 Json(false, "DiamondTilt.EditorTools",
-                    new[] { "DiamondTilt.Core", "DiamondTilt.Presentation" }, Array.Empty<string>()));
+                    new[] { "DiamondTilt.Core", "DiamondTilt.Presentation" }, Array.Empty<string>(),
+                    editorOnly: true));
 
             AsmdefWriter.WriteIfMissing(
                 "Assets/Tests/EditMode/DiamondTilt.Tests.EditMode.asmdef",
