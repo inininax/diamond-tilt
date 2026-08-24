@@ -1,6 +1,6 @@
 # AGENTS.md
 
-2.5D baseball game for mobile (iOS + Android), built with **Unity (C#)**. Touch-first input/UI; the game spec and phased build plan live in `PROMPT.md`.
+2.5D baseball game for mobile browsers, built with **three.js (web/)** on top of a battle-tested rules core. The original Unity (C#) implementation under `Assets/Scripts/` is preserved as the reference; the active game is `web/index.html` (open in any browser). Touch-first input/UI; the game spec and phased build plan live in `PROMPT.md`.
 
 ## Commands
 

@@ -29,13 +29,22 @@ The gameplay/economy core is plain C# with zero `UnityEngine` dependencies — t
 - **Save security**: HMAC-SHA256 envelope, hash-chained currency ledger, clamp-before-use, schema-versioned migration. See `Docs/SECURITY.md`.
 - **Monetization**: subscription + season pass + IAP gems + capped rewarded ads; never pay-to-win. See `Docs/MONETIZATION.md`.
 
-## Quickstart (no Unity required)
+## Play the game (web/three.js — active build)
 
 ```sh
-sh Scripts/run-tests.sh        # 208 EditMode tests via dotnet
+open web/index.html            # 그게 전부 — 브라우저에서 바로 플레이
 ```
 
-Requires the .NET SDK. Unity-side work (scenes, prefabs, device builds, store SDKs) is tracked in `AGENTS.md` → "In-progress work".
+- 좌클릭 존 탭 = 투구 · SWING 버튼/Space = 타격 · 모바일 브라우저 터치 지원
+- 로직 테스트: `node web/tests/rules.test.js`
+
+## Legacy Unity core
+
+```sh
+sh Scripts/run-tests.sh        # 236 EditMode tests via dotnet
+```
+
+The original Unity/C# core (rules, physics, economy) is preserved under `Assets/Scripts/` as the reference implementation; `web/` is the active game built on three.js. See `Docs/pipeline-log.md` for the full history.
 
 ## Repository map
 

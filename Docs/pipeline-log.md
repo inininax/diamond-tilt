@@ -324,6 +324,22 @@ Unity 6000.0.82f1 installed via Hub CLI; Personal license active; project opened
 | C291 | Build | macOS standalone rebuilt with full visuals; relaunched — log clean | process running, log clean | ✅ |
 | C292 | Verify | Full battery: headless 244/244 - Unity EditMode 236/236 - Unity PlayMode 6/6 (exit-1 transient confirmed clean on retry) | all three | **ALL GREEN** |
 
+## Run 14 — C293–C301: THREE.JS REBUILD (user-directed pivot to browser 2.5D/3D)
+
+User feedback: Unity primitives rendered as "a few letters and weird graphics" — wanted VISIBLE human characters playing baseball. Pivot: web/three.js where iteration is instant and visuals verifiable in browser.
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C293 | Port | web/js/rules.js — full rules engine port (at-bats, runners, innings, final-inning skip, walk-off) | node tests | green |
+| C294 | Port | web/js/ballflight.js — gravity+drag physics, wall adjudication, sampling | node tests | green |
+| C295 | Port | web/js/session.js — TimingContactModel + CPU AI + interactive session + rewards-once | node tests | green |
+| C296 | Tests | web/tests/rules.test.js: 17 logic tests ported from C# suite (walk, grand slam, sac-fly third out, walk-off, skip rule, trajectory, full session) | **node: 17/17** | green |
+| C297-C298 | Visuals | web/js/scene.js: night stadium (striped grass, dirt diamond, mound, bases, foul lines, 24-seg wall + yellow top line, 420-instance crowd, light pylons, foul poles) + ARTICULATED humanoids (shoulder/elbow/hip/knee joints, bat pivot, caps) with idle-breathe/windup/swing animations | syntax + browser | — |
+| C299 | UI | web/index.html + main.js: Korean HUD overlay (scoreboard/count/bases-diamond/coins), zone-grid + speed selector + SWING button + Space/click, play-by-play log, result modal, dynamic camera follows ball | browser | — |
+| C300-C301 | Fixes | window/globalThis dual export for node+browser; test expectation fixes (foul=chase offset2, walk-off result Home); removed dead code | node: 17/17 | green |
+
+**Run-14 total: C293–C301 (9 cycles). Game now runs in any browser: open web/index.html. Node logic tests: 17/17. Cumulative: C001–C301 across 15 runs. Unity C# core preserved as reference; web/ is now the active game.**
+
 **Run-13 total: C285–C292 (8 cycles), suite 243 -> 244. The game now shows a visible 2.5D stadium with characters, animated pitches, real-physics ball arcs and runner movement. Cumulative: C001-C292 across 14 runs.**
 
 **Run-12 total: C279-C284 (6 cycles), suite 237 -> 243 (+6). The game is now genuinely playable in Unity: pitch by tapping zones, bat by timing SWING against the incoming ball bar. Cumulative: C001-C284 across 13 runs.**

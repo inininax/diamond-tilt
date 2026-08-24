@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Diamond Tilt — 2.5D 야구</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b1220;
+    font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+  #game { display: block; width: 100vw; height: 100vh; }
+
+  .panel { position: absolute; background: rgba(8, 14, 26, 0.78); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 12px; backdrop-filter: blur(6px); color: #fff; }
+
+  #scoreboard { top: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 22px; align-items: center; padding: 10px 26px; }
+  #scoreboard .cell { text-align: center; }
+  #scoreboard .lab { font-size: 11px; opacity: 0.65; letter-spacing: 1px; }
+  #scoreboard .val { font-size: 24px; font-weight: 700; }
+  #score { font-size: 30px !important; color: #ffd76a; }
+  .bases { display: grid; grid-template-columns: 22px 22px; grid-template-rows: 22px 22px; gap: 3px; transform: rotate(45deg); }
+  .base { width: 20px; height: 20px; border-radius: 4px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); }
+  .base.on { background: #ffd76a; box-shadow: 0 0 8px #ffd76a; }
+  .base.second { grid-column: 1; grid-row: 1; }
+  .base.first { grid-column: 2; grid-row: 2; }
+  .base.third { grid-column: 1; grid-row: 2; }
+
+  #battingLabel { top: 76px; left: 50%; transform: translateX(-50%);
+    padding: 6px 18px; font-size: 14px; color: #ffe9a8; text-align: center; }
+
+  #coins { top: 14px; right: 16px; padding: 10px 16px; font-size: 18px; font-weight: 700; }
+
+  #zoneGrid { bottom: 130px; left: 50%; transform: translateX(-50%);
+    display: grid; grid-template-columns: repeat(3, 74px); grid-template-rows: repeat(3, 58px); gap: 7px; }
+  .zone { font-size: 22px; font-weight: 700; color: #fff; background: rgba(20, 34, 58, 0.85);
+    border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; cursor: pointer; transition: all 0.12s; }
+  .zone:hover { background: #2a4a80; transform: scale(1.06); }
+  .zone:active { background: #ffd76a; color: #122; }
+
+  .speedRow { bottom: 84px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+  .speed { padding: 6px 14px; font-size: 13px; color: #cfd8ff; background: rgba(20,34,58,0.8);
+    border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; cursor: pointer; }
+  .speed.sel { background: #ffd76a; color: #122; font-weight: 700; }
+
+  #swingBtn { display: none; bottom: 130px; left: 50%; transform: translateX(-50%);
+    width: 220px; height: 92px; font-size: 30px; font-weight: 900; color: #fff;
+    background: linear-gradient(180deg, #ff5f4e, #d42b1e); border: 2px solid #ffb0a0;
+    border-radius: 16px; cursor: pointer; box-shadow: 0 6px 22px rgba(212, 43, 30, 0.5); }
+  #swingBtn:active { transform: translateX(-50%) scale(0.95); }
+  #swingBtn.hit { background: linear-gradient(180deg, #ffe27a, #ffb02e); color: #4a2a00; }
+
+  #log { bottom: 16px; left: 16px; width: 300px; max-height: 160px; padding: 10px 14px;
+    list-style: none; font-size: 14px; line-height: 1.55; }
+  #log li:first-child { color: #ffd76a; font-weight: 700; }
+
+  #result { display: none; position: absolute; inset: 0; background: rgba(4, 8, 16, 0.72);
+    flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+  #resultTitle { font-size: 52px; font-weight: 900; color: #ffd76a; text-shadow: 0 4px 18px rgba(0,0,0,0.6); }
+  #resultScore { font-size: 26px; color: #fff; }
+  #againBtn { padding: 14px 42px; font-size: 20px; font-weight: 700; color: #122;
+    background: #ffd76a; border: none; border-radius: 12px; cursor: pointer; }
+  #againBtn:hover { background: #ffe89a; }
+
+  #help { bottom: 16px; right: 16px; padding: 10px 14px; font-size: 12px; opacity: 0.85; line-height: 1.6; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="scoreboard" class="panel">
+  <div class="cell"><div class="lab">이닝</div><div class="val" id="inning">1초</div></div>
+  <div class="cell"><div class="lab">카운트</div><div class="val" id="count">0-0</div></div>
+  <div class="cell"><div class="lab">아웃</div><div class="val" id="outs">0</div></div>
+  <div class="cell"><div class="lab">스코어</div><div class="val" id="score">0 : 0</div></div>
+  <div class="bases">
+    <div class="base second" id="base_second"></div>
+    <div class="base first" id="base_first"></div>
+    <div class="base third" id="base_third"></div>
+  </div>
+</div>
+
+<div id="battingLabel" class="panel">⚔️ 타격 — 공을 보고 SWING!</div>
+<div id="coins" class="panel">🪙 0</div>
+
+<div id="zoneGrid" class="panel"></div>
+<div class="speedRow panel">
+  <button class="speed" data-speed="0">느리게</button>
+  <button class="speed sel" data-speed="1">보통</button>
+  <button class="speed" data-speed="2">빠르게</button>
+</div>
+<button id="swingBtn" class="panel">SWING!</button>
+
+<ul id="log" class="panel"></ul>
+
+<div id="help" class="panel">
+  🖱️ 존 클릭 = 투구 · SWING/Space/화면 클릭 = 타격<br>
+  말(공격)에만 타격 · 3이닝 매치
+</div>
+
+<div id="result">
+  <div id="resultTitle">승리!</div>
+  <div id="resultScore">0 : 0</div>
+  <button id="againBtn">다시 하기</button>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/ballflight.js"></script>
+<script src="js/session.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
