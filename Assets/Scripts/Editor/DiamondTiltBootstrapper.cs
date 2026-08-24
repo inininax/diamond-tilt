@@ -97,6 +97,18 @@ namespace DiamondTilt.Core.EditorTools
             if (File.Exists(path)) return;
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+            var cameraGo = new GameObject("Main Camera");
+            var camera = cameraGo.AddComponent<Camera>();
+            camera.tag = "MainCamera";
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.10f, 0.32f, 0.13f);
+            camera.transform.position = new Vector3(0, 0, -10);
+            var lightGo = new GameObject("Directional Light");
+            lightGo.AddComponent<Light>();
+            lightGo.GetComponent<Light>().type = LightType.Directional;
+            lightGo.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+
             if (withRunner)
             {
                 var runnerGo = new GameObject("GameRunner");

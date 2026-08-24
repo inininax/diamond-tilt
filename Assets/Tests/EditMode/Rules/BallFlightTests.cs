@@ -103,6 +103,17 @@ namespace DiamondTilt.Tests
         }
 
         [Test]
+        public void Sample_StartsAtContactHeight_EndsNearGround_MonotonicDepth()
+        {
+            var points = BallFlight.Sample(Fly(speed: 38, angle: 30), 20);
+
+            Assert.That(points[0].Y, Is.EqualTo(FieldConstants.ContactHeightM).Within(1e-9));
+            Assert.That(points[points.Length - 1].Y, Is.LessThan(0.5));
+            for (int i = 1; i < points.Length; i++)
+                Assert.That(points[i].Z, Is.GreaterThan(points[i - 1].Z));
+        }
+
+        [Test]
         public void ClearsWall_WeakFly_No_StrongFly_Yes()
         {
             Assert.That(BallFlight.ClearsWallForHomerun(Fly(speed: 25, angle: 40)), Is.False);

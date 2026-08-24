@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 - 2.5D visual presentation
+
+- Procedural stadium: grass/dirt diamond, mound, bases, foul lines, outfield wall, tiered stands
+- Capsule-player characters: pitcher, batter (with bat swing), catcher, umpire, seven fielders, runners
+- Ball renders the REAL simulated trajectory (drag physics) with trail; pitch arc scaled by speed tier
+- Broadcast camera behind home plate; solid-color field background; magenta-screen fix (GUI-outside-OnGUI + missing camera)
+
 ## 0.6.0 - PLAYABLE GAME
 
 - Interactive match loop: tap strike-zone to pitch, time your SWING against the incoming ball

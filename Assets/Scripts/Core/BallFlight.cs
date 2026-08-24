@@ -139,6 +139,19 @@ namespace DiamondTilt.Core
             return new TrajectoryResult(pos, time, apex, pos.HorizontalDistance(), crossedWall);
         }
 
+        public static Vec3[] Sample(LaunchParams p, int steps)
+        {
+            if (steps < 2) throw new ArgumentOutOfRangeException(nameof(steps));
+
+            var points = new Vec3[steps];
+            double dt = FlightTimeNoDrag(p) / (steps - 1);
+            for (int i = 0; i < steps; i++)
+            {
+                points[i] = PositionNoDrag(p, dt * i);
+            }
+            return points;
+        }
+
         public static bool ClearsWallForHomerun(LaunchParams p)
             => !IsFoul(p) && IntegrateWithDrag(p).CrossedWallPlane;
 

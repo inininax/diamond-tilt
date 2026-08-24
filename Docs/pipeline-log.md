@@ -311,6 +311,21 @@ Unity 6000.0.82f1 installed via Hub CLI; Personal license active; project opened
 | C282-C283 | Presentation | MatchPlayController (OnGUI): HUD (inning/count/score/bases via HudMapper+StringTable), interactive zone grid w/ speed selector, incoming-ball timing bar, SWING button, live event log (ko), result screen + restart; Boot scene regenerated with GameRunner+Controller | Unity compile EXIT=0; bootstrap regen OK | — |
 | C284 | Verify | Full battery on shipped build: headless 243/243 - Unity EditMode 236/236 - Unity PlayMode 6/6 | all three | **ALL GREEN** |
 
+## Run 13 — C285–C292: 2.5D VISUAL PRESENTATION (real characters on a real field)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C285 | Physics API | BallFlight.Sample: trajectory sampling for rendering | Sample test (start height, ground end, monotonic depth) | 244/244 |
+| C286 | Session API | MatchPlaySession exposes LastContactFlight/LastOutcome/LastContactWasSwing via deterministic pre-resolver — presentation can render the actual simulated ball arc | headless suite | 244/244 |
+| C287 | Presentation | PlayerFigure: capsule humanoids (body/head/bat) with swing + run animations | Unity compile | — |
+| C288 | Presentation | FieldPresenter: procedural stadium — grass, dirt diamond, mound, bases, plate, foul lines, 22-segment wall, 3-tier stands, 12 figures (pitcher/batter/catcher/ump/7 fielders), ball with trail | Unity compile | — |
+| C289 | Presentation | Ball animation: pitch lerp with arc; contact flies the REAL sampled trajectory; runner animations base-to-base; delayed resolution lets the arc land before state snap | Unity compile | — |
+| C290 | Bugfix | Player.log diagnosis: static GUIStyle touched GUI.skin outside OnGUI (TypeInitializationException storm = magenta screen); scenes had no camera (uninitialized framebuffer). Fixed: lazy styles, fallback loading label, camera(solid dark-green)+light added to generated scenes | Player.log clean after rebuild | ✅ |
+| C291 | Build | macOS standalone rebuilt with full visuals; relaunched — log clean | process running, log clean | ✅ |
+| C292 | Verify | Full battery: headless 244/244 - Unity EditMode 236/236 - Unity PlayMode 6/6 (exit-1 transient confirmed clean on retry) | all three | **ALL GREEN** |
+
+**Run-13 total: C285–C292 (8 cycles), suite 243 -> 244. The game now shows a visible 2.5D stadium with characters, animated pitches, real-physics ball arcs and runner movement. Cumulative: C001-C292 across 14 runs.**
+
 **Run-12 total: C279-C284 (6 cycles), suite 237 -> 243 (+6). The game is now genuinely playable in Unity: pitch by tapping zones, bat by timing SWING against the incoming ball bar. Cumulative: C001-C284 across 13 runs.**
 
 

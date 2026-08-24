@@ -32,9 +32,15 @@ namespace DiamondTilt.Core
         private readonly IRngService _rng;
         private readonly MatchRewardService _rewards;
 
+        private readonly TimingContactModel _preResolver = new TimingContactModel();
         private PitchCall _incomingPitch;
         private int _resumeTick;
         private bool _rewardsApplied;
+
+        public LaunchParams? LastContactFlight { get; private set; }
+        public PlayOutcome LastOutcome { get; private set; }
+        public bool LastContactWasSwing { get; private set; }
+        public PitchCall IncomingPitch => _incomingPitch;
 
         public MatchState State => _engine.State;
         public int TicksPerSecond { get; }
@@ -82,6 +88,7 @@ namespace DiamondTilt.Core
 
             var pitch = new PitchCall(zone, speedTier);
             var swing = _cpuBatter.DecideSwing(pitch, State, _rng);
+            RecordContact(pitch, swing);
             _engine.ThrowPitch(pitch, swing);
             BeginBetweenPlays();
             return true;
@@ -92,15 +99,29 @@ namespace DiamondTilt.Core
             if (Phase != SessionPhase.BallIncoming) return false;
 
             int offset = CurrentTick - IncomingArrivalTick;
-            _engine.ThrowPitch(_incomingPitch, TouchToIntent.SwipeToSwing(offset));
+            var swing = TouchToIntent.SwipeToSwing(offset);
+            RecordContact(_incomingPitch, swing);
+            _engine.ThrowPitch(_incomingPitch, swing);
             BeginBetweenPlays();
             return true;
         }
 
         private void ResolveTake()
         {
+            LastContactWasSwing = false;
+            LastContactFlight = null;
             _engine.ThrowPitch(_incomingPitch, SwingDecision.Take());
             BeginBetweenPlays();
+        }
+
+        private void RecordContact(PitchCall pitch, SwingDecision swing)
+        {
+            LastContactWasSwing = true;
+            int abs = Math.Abs(swing.TimingOffsetTicks);
+            int band = pitch.SpeedTier == PitchCall.MinSpeedTier ? 1 : 0;
+            var resolution = _preResolver.Evaluate(pitch, swing, abs, band);
+            LastOutcome = resolution.Outcome;
+            LastContactFlight = resolution.Flight;
         }
 
         private void BeginBetweenPlays()

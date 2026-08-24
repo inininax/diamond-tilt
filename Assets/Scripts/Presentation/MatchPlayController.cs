@@ -15,6 +15,8 @@ namespace DiamondTilt.Presentation
         private int _pendingZone = 4;
         private int _pendingSpeed = 1;
         private float _tickAccumulator;
+        private FieldPresenter _field;
+        private SessionPhase _lastPhase = SessionPhase.BetweenPlays;
 
         private void Start()
         {
@@ -31,6 +33,9 @@ namespace DiamondTilt.Presentation
 
             uint seed = (uint)UnityEngine.Random.Range(1, int.MaxValue);
             _session = new MatchPlaySession(engine, new Mulberry32Rng(seed), rewards, TicksPerSecond);
+
+            _field = gameObject.AddComponent<FieldPresenter>();
+            _field.Build();
         }
 
         private void Update()
@@ -44,16 +49,49 @@ namespace DiamondTilt.Presentation
                 _session.TickAdvance(whole);
             }
 
+            var phaseBefore = _lastPhase;
+            _lastPhase = _session.Phase;
+
+            if (phaseBefore != _session.Phase)
+            {
+                if (_session.Phase == SessionPhase.BallIncoming)
+                    _field.BeginPitch(_session.FlightTicks / (float)_session.TicksPerSecond);
+
+                if (_session.Phase == SessionPhase.BetweenPlays)
+                {
+                    if (_session.LastContactWasSwing && _session.LastContactFlight != null)
+                    {
+                        _field.BeginContact(_session.LastContactFlight.Value);
+                        _field.ResolvePlayDelayed(_session.State, _session.LastOutcome,
+                            Mathf.Max(0.9f, (float)BallFlight.FlightTimeNoDrag(_session.LastContactFlight.Value)));
+                    }
+                    else
+                    {
+                        _field.BeginTake();
+                        _field.ResolvePlayDelayed(_session.State, null, 0.35f);
+                    }
+                }
+            }
+
             foreach (var e in _session.DrainEvents())
             {
                 _log.Insert(0, e);
                 if (_log.Count > 4) _log.RemoveAt(_log.Count - 1);
+
+                if (e.Type == MatchEventType.HalfInningEnded)
+                    _field.ResetInning();
             }
         }
 
         private void OnGUI()
         {
-            if (_session == null) return;
+            if (_session == null)
+            {
+                GUI.Box(new Rect(0, Screen.height / 2 - 40, Screen.width, 80), string.Empty);
+                GUI.Label(new Rect(0, Screen.height / 2 - 30, Screen.width, 60),
+                    "게임을 초기화하는 중...", NewLabel(26));
+                return;
+            }
 
             var hud = HudMapper.From(_session.State);
             DrawHud(hud);
@@ -79,16 +117,15 @@ namespace DiamondTilt.Presentation
             DrawEventLog();
         }
 
-        private static readonly GUIStyle TitleStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 28,
-            alignment = TextAnchor.MiddleCenter,
-        };
+        private GUIStyle _titleStyle;
+        private GUIStyle TitleStyle => _titleStyle ??= NewLabel(28);
 
-        private static GUIStyle BigLabel(int size)
+        private static GUIStyle NewLabel(int size)
         {
             return new GUIStyle(GUI.skin.label) { fontSize = size, alignment = TextAnchor.MiddleCenter };
         }
+
+        private static GUIStyle BigLabel(int size) => NewLabel(size);
 
         private void DrawHud(HudSnapshot hud)
         {
