@@ -10,6 +10,9 @@
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b1220);
@@ -26,8 +29,8 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  scene.add(new THREE.HemisphereLight(0x9db8ff, 0x1d4a20, 0.75));
-  const sun = new THREE.DirectionalLight(0xfff4e0, 1.05);
+  scene.add(new THREE.HemisphereLight(0x8fa8d8, 0x1d4a20, 0.55));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 1.35);
   sun.position.set(-30, 48, -20);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -182,6 +185,13 @@
     for (const e of session.drainEvents()) {
       log(describe(e));
       if (e.type === 'HalfInningEnded') stadium.updateRunnersFromState(session.state, null, false);
+    }
+
+    if (typeof stadium.updateScoreboard === 'function') {
+      const s2 = session.state;
+      stadium.updateScoreboard(
+        `${s2.awayRuns} : ${s2.homeRuns}`,
+        `${s2.inning}${s2.isTop ? '초' : '말'} · ${s2.balls}-${s2.strikes} · 아웃 ${s2.outs}`);
     }
 
     stadium.update(dt, session);
