@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 - PLAYABLE GAME
+
+- Interactive match loop: tap strike-zone to pitch, time your SWING against the incoming ball
+- OnGUI presentation: Korean HUD (inning/count/score/bases), live play-by-play log, result screen with restart
+- Real rules/physics/economy drive every outcome; rewards accrue to wallet, missions and season pass as you play
+- Boot scene = playable game; Match scene = auto-match demo
+
 ## 0.5.2 - Playable loop closed
 
 - Auto-match demo now feeds the economy (coins, missions, season XP) via GameServices rewards

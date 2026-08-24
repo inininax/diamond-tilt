@@ -82,7 +82,7 @@ namespace DiamondTilt.Core.EditorTools
         private static void EnsureScenes()
         {
             Directory.CreateDirectory("Assets/Scenes");
-            EnsureScene("Assets/Scenes/Boot.unity", withRunner: true);
+            EnsureScene("Assets/Scenes/Boot.unity", withRunner: true, playController: true);
             EnsureScene("Assets/Scenes/Match.unity", withRunner: false, autoPlayer: true);
             EditorBuildSettings.scenes = new[]
             {
@@ -91,7 +91,7 @@ namespace DiamondTilt.Core.EditorTools
             };
         }
 
-        private static void EnsureScene(string path, bool withRunner, bool autoPlayer = false)
+        private static void EnsureScene(string path, bool withRunner, bool autoPlayer = false, bool playController = false)
         {
             if (File.Exists(path)) return;
 
@@ -105,6 +105,11 @@ namespace DiamondTilt.Core.EditorTools
             {
                 var playerGo = new GameObject("MatchAutoPlayer");
                 playerGo.AddComponent<DiamondTilt.Presentation.MatchAutoPlayer>();
+            }
+            if (playController)
+            {
+                var controllerGo = new GameObject("MatchPlayController");
+                controllerGo.AddComponent<DiamondTilt.Presentation.MatchPlayController>();
             }
             EditorSceneManager.SaveScene(scene, path);
         }

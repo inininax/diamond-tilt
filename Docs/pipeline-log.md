@@ -302,4 +302,15 @@ Unity 6000.0.82f1 installed via Hub CLI; Personal license active; project opened
 
 **Run-10 total: 3 cycles. All three test surfaces green. Cumulative: C001–C272 across 10 runs.**
 
-**Run-9 total: C269 bring-up cycle (multiple sub-fixes, each verified by a fresh batchmode run). Cumulative: C001–C269 across 9 runs. The project now compiles and tests BOTH headlessly and inside Unity.**
+**Run-9 total: C269 bring-up cycle (multiple sub-fixes, each verified by a fresh batchmode run). Cumulative: C001–C269 across 9 runs. The project now compiles and tests BOTH headlessly and inside Unity.**## Run 12 — C279–C284: PLAYABLE GAME SHIPPED (interactive UI)
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C279-C280 | Gameplay | MatchPlaySession (Core): interactive play loop — player taps 3x3 zone grid to pitch (CPU bats), ball flies in real ticks scaled by speed tier, player times SWING vs arrival tick (+grace auto-take); walk-off/half transitions/rewards all flow through existing engine | MatchPlaySessionTests x5 incl. full-interactive-match completion + rewards-once | headless green |
+| C281 | Bugfix(design) | Test policy bug exposed design truth: always grooving zone-4 meatballs = zero outs = correct baseball. Driver now mixes zones like a real pitcher | fixed driver | 243/243 |
+| C282-C283 | Presentation | MatchPlayController (OnGUI): HUD (inning/count/score/bases via HudMapper+StringTable), interactive zone grid w/ speed selector, incoming-ball timing bar, SWING button, live event log (ko), result screen + restart; Boot scene regenerated with GameRunner+Controller | Unity compile EXIT=0; bootstrap regen OK | — |
+| C284 | Verify | Full battery on shipped build: headless 243/243 - Unity EditMode 236/236 - Unity PlayMode 6/6 | all three | **ALL GREEN** |
+
+**Run-12 total: C279-C284 (6 cycles), suite 237 -> 243 (+6). The game is now genuinely playable in Unity: pitch by tapping zones, bat by timing SWING against the incoming ball bar. Cumulative: C001-C284 across 13 runs.**
+
+
