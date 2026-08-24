@@ -289,6 +289,17 @@ Unity 6000.0.82f1 installed via Hub CLI; Personal license active; project opened
 | C271 | PlayMode | DiamondTilt.Tests.PlayMode asmdef + SmokeTests ×3: GameRunner service composition in-scene, full match completes <10s wall-clock, SaveStorage device round-trip preserves balance + verifies ledger chain | UNITY PLAYMODE 3/3 | ✅ |
 | C272 | Fixes | PlayMode compile fixes found only in Unity: missing UnityEngine.TestTools/Presentation usings | full gates re-run | **Headless 236/236 · Unity EditMode 229/229 · Unity PlayMode 3/3** |
 
+## Run 11 — C273–C278: playable loop closed + settings persistence
+
+| Cycle | Area | Change | Tests | Result |
+|---|---|---|---|---|
+| C273 | Loop | MatchAutoPlayer.RunFullMatch (testable static): full match + drained-event stats + GameServices rewards — demo now feeds wallet/missions/season; MatchSummary payload | PlayMode AutoPlayer_RewardsFlow_ProgressesEconomyAndSeason | OK |
+| C274 | Settings | SaveData.SoundEnabled persisted field; GameRunner SoundEnabled passthrough w/ save-on-change | PlayMode SoundEnabled_PersistsThroughDeviceSaveRoundTrip | OK |
+| C275 | Bugfix | WriteBackTo dropped SoundEnabled/DifficultyTier/streak fields (same class as run-6 reviewer finding #2) -> full-state copy + EditMode regression | WriteBackTo_PreservesSoundEnabled_Difficulty_AndStreakFields | 237/237 headless |
+| C276-C278 | Cleanup | FindFirstObjectByType migration (Unity 6); tautological build-settings assert replaced with real EditorBuildSettings check (#if UNITY_EDITOR) | AppFlow/TouchInput additions | OK |
+
+**Final gates: headless 237/237 - Unity EditMode 229/229 - Unity PlayMode 6/6. Cumulative: C001-C278 across 11 runs.**
+
 **Run-10 total: 3 cycles. All three test surfaces green. Cumulative: C001–C272 across 10 runs.**
 
 **Run-9 total: C269 bring-up cycle (multiple sub-fixes, each verified by a fresh batchmode run). Cumulative: C001–C269 across 9 runs. The project now compiles and tests BOTH headlessly and inside Unity.**

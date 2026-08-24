@@ -96,6 +96,10 @@ namespace DiamondTilt.Core
             save.SeasonPass = SeasonPass.State;
             save.Missions = Missions.State;
             save.Subscription = Entitlements.State;
+            save.DifficultyTier = _sourceSave.DifficultyTier;
+            save.CurrentStreak = _sourceSave.CurrentStreak;
+            save.BestStreak = _sourceSave.BestStreak;
+            save.SoundEnabled = _sourceSave.SoundEnabled;
         }
     }
 }

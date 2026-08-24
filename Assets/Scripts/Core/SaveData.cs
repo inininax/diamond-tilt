@@ -34,6 +34,7 @@ namespace DiamondTilt.Core
         public int DifficultyTier;
         public int CurrentStreak;
         public int BestStreak;
+        public bool SoundEnabled = true;
 
         public long WalletCoins;
         public long WalletGems;

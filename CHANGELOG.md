@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2 - Playable loop closed
+
+- Auto-match demo now feeds the economy (coins, missions, season XP) via GameServices rewards
+- Settings persistence (sound toggle) through device save; GameServices difficulty/streak passthrough
+- Unity 6 API migrations and boundary test hardening
+
 ## 0.5.1 — PlayMode verification
 
 - PlayMode smoke suite (Unity): scene-service composition, full-match-under-budget, device save round-trip

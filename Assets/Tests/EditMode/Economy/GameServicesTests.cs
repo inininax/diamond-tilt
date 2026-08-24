@@ -63,6 +63,26 @@ namespace DiamondTilt.Tests
         }
 
         [Test]
+        public void WriteBackTo_PreservesSoundEnabled_Difficulty_AndStreakFields()
+        {
+            var save = new SaveData();
+            SaveClamp.MigrateToCurrent(save);
+            save.SoundEnabled = false;
+            save.DifficultyTier = (int)Difficulty.Hard;
+            save.CurrentStreak = 3;
+            save.BestStreak = 7;
+            var services = new GameServices(save, Key, new FixedClock(BaseUtc));
+
+            var outPayload = new SaveData { SoundEnabled = true };
+            services.WriteBackTo(outPayload);
+
+            Assert.That(outPayload.SoundEnabled, Is.False);
+            Assert.That(outPayload.DifficultyTier, Is.EqualTo((int)Difficulty.Hard));
+            Assert.That(outPayload.CurrentStreak, Is.EqualTo(3));
+            Assert.That(outPayload.BestStreak, Is.EqualTo(7));
+        }
+
+        [Test]
         public void NullArguments_Rejected()
         {
             var save = new SaveData();

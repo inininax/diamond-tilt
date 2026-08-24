@@ -18,7 +18,7 @@ namespace DiamondTilt.Tests
             var go = new GameObject("GameRunner", typeof(GameRunner));
             yield return null;
 
-            var runner = UnityEngine.Object.FindObjectOfType<GameRunner>();
+            var runner = UnityEngine.Object.FindFirstObjectByType<GameRunner>();
             Assert.That(runner, Is.Not.Null);
             Assert.That(runner.Services, Is.Not.Null);
             Assert.That(runner.Services.Wallet, Is.Not.Null);
@@ -65,6 +65,57 @@ namespace DiamondTilt.Tests
             Assert.That(loaded.WalletGems, Is.EqualTo(42));
             Assert.That(Wallet.VerifyChain(loaded.Ledger, Key), Is.True);
 
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator AutoPlayer_RewardsFlow_ProgressesEconomyAndSeason()
+        {
+            var clock = new UnityClock();
+            var save = new SaveData();
+            SaveClamp.MigrateToCurrent(save);
+            var services = new GameServices(save, Key, clock);
+
+            var summary = MatchAutoPlayer.RunFullMatch(services, Difficulty.Normal, 777u);
+
+            Assert.That(summary.Pitches, Is.GreaterThan(0));
+            Assert.That(summary.CoinsAfter, Is.GreaterThan(summary.CoinsBefore),
+                "win or loss must always pay match coins");
+            Assert.That(summary.EconomyProgressed, Is.True);
+            Assert.That(Wallet.VerifyChain(services.Wallet.Entries, Key), Is.True);
+
+            yield return null;
+        }
+
+#if UNITY_EDITOR
+        [UnityTest]
+        public IEnumerator BootScene_RegisteredInBuildSettings()
+        {
+            bool found = false;
+            foreach (var scene in UnityEditor.EditorBuildSettings.scenes)
+            {
+                if (scene.path.EndsWith("Boot.unity") && scene.enabled) { found = true; break; }
+            }
+
+            Assert.That(found, Is.True);
+            yield return null;
+        }
+#endif
+
+        [UnityTest]
+        public IEnumerator SoundEnabled_PersistsThroughDeviceSaveRoundTrip()
+        {
+            var clock = new UnityClock();
+            var save = SaveStorage.LoadOrDefault(Key);
+            save.SoundEnabled = false;
+
+            var services = new GameServices(save, Key, clock);
+            services.Wallet.Grant(CurrencyType.Coins, 1, "touch", clock);
+            SaveStorage.Store(services, Key);
+
+            var reloaded = SaveStorage.LoadOrDefault(Key);
+
+            Assert.That(reloaded.SoundEnabled, Is.False);
             yield return null;
         }
     }

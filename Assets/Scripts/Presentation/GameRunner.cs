@@ -12,6 +12,19 @@ namespace DiamondTilt.Presentation
 
         public GameServices Services => _services;
 
+        public bool SoundEnabled
+        {
+            get => _services != null && _sourceSave != null && _sourceSave.SoundEnabled;
+            set
+            {
+                if (_sourceSave == null) return;
+                _sourceSave.SoundEnabled = value;
+                RequestSave();
+            }
+        }
+
+        private SaveData _sourceSave;
+
         private void Awake()
         {
             Application.targetFrameRate = 60;
@@ -19,6 +32,7 @@ namespace DiamondTilt.Presentation
             var clock = new UnityClock();
             byte[] key = SaveIntegrity.DeriveKey(DeviceSeed.Value);
             SaveData save = SaveStorage.LoadOrDefault(key);
+            _sourceSave = save;
             _services = new GameServices(save, key, clock);
             _services.SaveRequested += () => SaveStorage.Store(_services, key);
 
