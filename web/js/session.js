@@ -110,6 +110,16 @@
       for (let i = 0; i < ticks; i++) {
         this.currentTick++;
         if (this.phase === 'BallIncoming' && this.currentTick > this.arrivalTick + MAX_OFFSET) {
+          if (this._cpuSwingPending) {
+            const pitch = this.incomingPitch;
+            const swing = cpuSwing(this.state, this.rng, 1.1, 0.65);
+            this.recordContact(pitch, swing);
+            this.engine.throwPitch(pitch, swing);
+            this._cpuSwingPending = false;
+            this.beginBetweenPlays();
+            if (this.phase === 'MatchOver') return;
+            continue;
+          }
           this.resolveTake();
           if (this.phase === 'MatchOver') return;
         } else if (this.phase === 'BetweenPlays' && this.currentTick >= this._resumeTick) {
@@ -121,16 +131,18 @@
 
     playerPitch(zone, speedTier) {
       if (this.phase !== 'WaitingToPitch' || !this.state.isTop) return false;
-      const pitch = { zone, speedTier };
-      const swing = cpuSwing(this.state, this.rng, 1.1, 0.65);
-      this.recordContact(pitch, swing);
-      this.engine.throwPitch(pitch, swing);
-      this.beginBetweenPlays();
+      this.incomingPitch = { zone, speedTier };
+      this.flightTicks = FLIGHT_BY_TIER[speedTier] || 52;
+      this.arrivalTick = this.currentTick + this.flightTicks;
+      this.phase = 'BallIncoming';
+      this._cpuSwingPending = true;
       return true;
     }
 
     playerSwing() {
       if (this.phase !== 'BallIncoming') return false;
+      if (this._cpuSwingPending) return false;
+      if (this.currentTick < this.arrivalTick - Math.floor(this.flightTicks * 0.4)) return false;
       const offset = this.currentTick - this.arrivalTick;
       const swing = { took: true, offsetTicks: Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, offset)) };
       this.lastSwingTick = this.currentTick;
@@ -178,7 +190,8 @@
       if (this._rewardsApplied || !this.rewards) return;
       this._rewardsApplied = true;
       const stats = { hits: 0, hrs: 0, strikeouts: 0, homeHits: 0, homeHrs: 0 };
-      for (const e of this.engine.drainEvents()) {
+      const evts = this.engine.drainEvents();
+      for (const e of evts) {
         if (e.type === 'HitRecorded') { stats.hits++; if (!e.isTop) stats.homeHits++; }
         if (e.type === 'HomerunRecorded') { stats.hrs++; stats.hits++; if (!e.isTop) { stats.homeHrs++; stats.homeHits++; } }
         if (e.type === 'BatterStruckOut') stats.strikeouts++;
@@ -189,6 +202,7 @@
         awayRuns: this.state.awayRuns,
         homeRuns: this.state.homeRuns,
       };
+      this.engine.events = evts.concat(this.engine.events);
     }
   }
 

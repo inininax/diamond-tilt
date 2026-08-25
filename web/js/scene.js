@@ -175,7 +175,6 @@
       const bat = new THREE.Mesh(new THREE.LatheGeometry(pts, 10), mat(0xd8a35a, { roughness: 0.55 }));
       const batPivot = new THREE.Group();
       batPivot.position.set(0.3 * k, 1.46 * k, 0.06 * k);
-      bat.add(batMesh(bat));
       bat.rotation.x = 0.35;
       bat.position.y = -0.1 * k;
       batPivot.add(bat);
@@ -186,7 +185,7 @@
       const num = new THREE.Mesh(
         new THREE.PlaneGeometry(0.26 * k, 0.26 * k),
         new THREE.MeshBasicMaterial({ map: numberTexture(opts.number, '#' + new THREE.Color(uniform).getHexString(), '#ffffff'), transparent: false }));
-      num.position.set(0, 1.38 * k, 0.15 * k);
+      num.position.set(0, 1.4 * k, 0.24 * k);
       body.add(num);
     }
 
@@ -195,12 +194,11 @@
     const figure = {
       root, body, head, torso, armL, armR, legL, legR,
       batPivot: opts.bat ? root.getObjectByName('bat') || null : null,
-      bat: root.children.find ? null : null,
       swingT: -1,
       baseY: 0,
     };
     if (opts.bat) {
-      figure.batPivot = body.children.filter(c => c.type === 'Group').pop() || null;
+      figure.batPivot = batPivot;
       figure.swingAnim = (dt) => {
         if (figure.swingT < 0) return;
         figure.swingT += dt;
@@ -303,18 +301,22 @@
       plate.position.y = 0.03;
       R.add(plate);
 
-      const batterBoxTex = null;
-      [[-1, 1], [1, -1]].forEach(([side]) => {
-        const bb = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.62, 4, 1, 0, Math.PI * 2), mat(LINE_WHITE, { side: THREE.DoubleSide }));
-        bb.rotation.x = -Math.PI / 2;
-        bb.rotation.z = Math.PI / 4;
-        bb.position.set(side * 0.95, 0.02, 0);
-        R.add(bb);
+      [[-1], [1]].forEach(([side]) => {
+        const cx = side * 0.95, cz = 0;
+        const w = 0.55, d = 1.1;
+        [[cx - w, cz - d, cx + w, cz - d], [cx + w, cz - d, cx + w, cz + d],
+         [cx + w, cz + d, cx - w, cz + d], [cx - w, cz + d, cx - w, cz - d]].forEach(([ax, az, bx, bz]) => {
+          const len = Math.hypot(bx - ax, bz - az);
+          const segm = box(len, 0.03, 0.09, LINE_WHITE);
+          segm.position.set((ax + bx) / 2, 0.025, (az + bz) / 2);
+          segm.rotation.y = -Math.atan2(bz - az, bx - ax);
+          R.add(segm);
+        });
       });
 
-      [[-11.3, 1], [11.3, -1]].forEach(([dist, side]) => {
+      [[-1], [1]].forEach(([side]) => {
         const c = cyl(0.75, 0.75, 0.02, 0xa87f52, 20);
-        c.position.set(side * 1.2 + (side > 0 ? 10 : -10), 0.014, 8);
+        c.position.set(side * 11.3, 0.014, 6.5);
         R.add(c);
       });
 
@@ -376,13 +378,19 @@
         R.add(pad);
       }
 
-      const topLine = new THREE.Mesh(
-        new THREE.TorusGeometry(110, 0.1, 6, 60, THREE.MathUtils.degToRad(104)),
-        mat(0xf7d247, { emissive: 0x554400 }));
-      topLine.position.set(0, 4.25, 0);
-      topLine.scale.set(1, 1, 1.1);
-      topLine.rotation.y = Math.PI / 2 + THREE.MathUtils.degToRad(-38);
-      R.add(topLine);
+      // yellow safety line drawn flat along the wall top (follows asymmetric radius)
+      for (let i = 0; i < SEGS; i++) {
+        const a0 = THREE.MathUtils.lerp(-52, 52, i / SEGS) * Math.PI / 180;
+        const a1 = THREE.MathUtils.lerp(-52, 52, (i + 1) / SEGS) * Math.PI / 180;
+        const r0 = distAt(a0 * 180 / Math.PI), r1 = distAt(a1 * 180 / Math.PI);
+        const p0 = new THREE.Vector3(Math.sin(a0) * r0, 0, Math.cos(a0) * r0);
+        const p1 = new THREE.Vector3(Math.sin(a1) * r1, 0, Math.cos(a1) * r1);
+        const mid = p0.clone().add(p1).multiplyScalar(0.5);
+        const stripe = box(p0.distanceTo(p1) + 0.5, 0.22, 1.05, 0xf7d247);
+        stripe.position.set(mid.x, 4.28, mid.z);
+        stripe.rotation.y = Math.atan2(p1.x - p0.x, p1.z - p0.z);
+        R.add(stripe);
+      }
 
       [[-45], [45]].forEach(([a]) => {
         const rad = a * Math.PI / 180;
@@ -411,6 +419,7 @@
       const R = this.root;
       const seatColors = [0xd8574e, 0x4a6fd4, 0xe0c060, 0x4fae6a, 0xd8d8d8, 0xb06ac9];
       const concrete = mat(0x9aa2ad, { roughness: 0.9 });
+      const concreteDoubleSided = mat(0x9aa2ad, { roughness: 0.9, side: THREE.DoubleSide });
 
       const tiers = [
         { rIn: 104, rOut: 128, y0: 1.8, y1: 8.5, count: 26 },
@@ -427,7 +436,7 @@
           const aStart = tier.infieldOnly ? -75 : -125;
           const ring = new THREE.Mesh(
             new THREE.CylinderGeometry(r, r, 0.55, 48, 1, true, (90 - aStart - arcSpan / 2) * Math.PI / 180, arcSpan * Math.PI / 180),
-            concrete);
+            concreteDoubleSided);
           ring.position.y = y;
           ring.rotation.y = Math.PI / 2;
           R.add(ring);
@@ -651,19 +660,12 @@
       mk('rf', defense, 34, 62, Math.atan2(-34, 62 - 14) + Math.PI, 44);
 
       this.players.batter = mk('batter', attack, 0.85, 0.3, Math.PI + 0.2, 52);
-      mk('ondeck', Object.assign({}, attack, { bat: true, helmet: true }), 2.6, -8.5, Math.PI, 8);
+      mk('ondeck', Object.assign({}, attack, { bat: true, helmet: true }), 12.3, 6.5, Math.PI, 8);
 
       mk('umpire', { uniform: 0x14161c, pants: 0x3a4048, cap: true, mask: true }, -0.7, -2.0, Math.PI, null);
     }
 
-    placeCamera() {
-      const camGO = window.__gameCamera;
-      if (!camGO) return;
-      camGO.position.set(0, 4.6, -8.5);
-      camGO.rotation.set(0.28, 0, 0);
-    }
-
-    setRunnerBase(index, baseVec) {
+    setRunnerBase(index, baseVec, animateFrom) {
       if (!this.runners[index]) {
         this.runners[index] = makeHumanoid({
           uniform: 0xd63c34, pants: 0xf2f2f2, helmet: true,
@@ -672,7 +674,15 @@
       }
       const r = this.runners[index];
       r.root.visible = true;
-      r.root.position.set(baseVec.x + 0.4, 0, baseVec.z - 0.4);
+      if (animateFrom) {
+        r.runFrom = new THREE.Vector3(animateFrom.x, 0, animateFrom.z);
+        r.runTo = new THREE.Vector3(baseVec.x + 0.35, 0, baseVec.z - 0.35);
+        r.runK = 0;
+        r.moving = true;
+      } else {
+        r.moving = false;
+        r.root.position.set(baseVec.x + 0.4, 0, baseVec.z - 0.4);
+      }
     }
 
     hideRunner(index) {
@@ -682,17 +692,37 @@
     updateRunnersFromState(state, outcome, animate) {
       const now = [state.first, state.second, state.third];
       const pos = [new THREE.Vector3(19.4, 0, 19.4), new THREE.Vector3(0, 0, 38.8), new THREE.Vector3(-19.4, 0, 19.4)];
+      const prev = this._prevBases || [false, false, false];
+      const prevPos = this._prevBasePositions;
       for (let i = 0; i < 3; i++) {
-        if (now[i]) this.setRunnerBase(i, pos[i]);
-        else if (!animate) this.hideRunner(i);
-        else if (!now[i] && this.runners[i] && this.runners[i].root.visible && outcome &&
-                 (outcome === 'Homerun' || outcome === 'Grounder' || outcome === 'DeepFly')) {
-          this.runners[i].root.visible = false;
+        if (now[i]) {
+          let from = null;
+          if (animate && prev[i] && prevPos) from = prevPos[i];
+          else if (animate && outcome === 'Homerun') from = new THREE.Vector3(pos[(i + 2) % 3].x * 0.5, 0, pos[(i + 2) % 3].z * 0.5);
+          this.setRunnerBase(i, pos[i], animate ? (from || pos[(i + 2) % 3]) : null);
+        } else {
+          this.hideRunner(i);
         }
       }
+      this._prevBases = [now[0], now[1], now[2]];
+      this._prevBasePositions = pos.map(p => p.clone());
+    }
+
+    animateBatterRunner(outcome) {
+      const target = outcome === 'Homerun' || outcome === 'Triple' ? new THREE.Vector3(0, 0, 0.6)
+        : outcome === 'Double' ? new THREE.Vector3(0, 0, 38.8)
+        : new THREE.Vector3(19.4, 0, 19.4);
+      const fig = this.players.batter;
+      fig.runFrom = fig.root.position.clone();
+      fig.runTo = target.clone();
+      fig.runK = 0;
+      fig.running = true;
+      fig.root.visible = true;
     }
 
     startPitchAnimation(durationSec) {
+      this.contactFlying = false;
+      this.contactPts = null;
       this.pitchT = 0;
       this.pitchDur = Math.max(0.25, durationSec);
       this.pitchFlying = true;
@@ -736,8 +766,8 @@
       if (this.pitchFlying) {
         this.pitchT += dt / this.pitchDur;
         const t = Math.min(1, this.pitchT);
-        const from = new THREE.Vector3(0, 1.85, 17.8);
-        const to = new THREE.Vector3(0.2, 1.0, 0.4);
+        const from = this._v1 || (this._v1 = new THREE.Vector3(0, 1.85, 17.8));
+        const to = this._v2 || (this._v2 = new THREE.Vector3(0.2, 1.0, 0.4));
         this.ball.position.lerpVectors(from, to, t);
         this.ball.position.y += Math.sin(t * Math.PI) * 0.35;
         this.pushTrail();
@@ -758,6 +788,25 @@
       }
 
       const t = performance.now() / 1000;
+
+      const processRun = (fig) => {
+        if (!fig || !fig.running) return false;
+        fig.runK += dt / Math.max(0.15, fig.runDur || 0.9);
+        const k = Math.min(1, fig.runK);
+        fig.root.position.lerpVectors(fig.runFrom, fig.runTo, k);
+        fig.root.position.y = 0;
+        const ph = t * 11;
+        fig.legL.rotation.x = Math.sin(ph) * 0.95;
+        fig.legR.rotation.x = -Math.sin(ph) * 0.95;
+        fig.armL.rotation.x = -Math.sin(ph) * 0.75;
+        fig.armR.rotation.x = Math.sin(ph) * 0.75;
+        fig.body.position.y = Math.abs(Math.sin(ph)) * 0.05;
+        if (k >= 1) { fig.running = false; fig.legL.rotation.x = 0; fig.legR.rotation.x = 0; }
+        return true;
+      };
+      processRun(this.players.batter);
+      this.runners.forEach(r => { if (r && r.root.visible) processRun(r); });
+
       const batter = this.players.batter;
       if (batter.swingAnim) batter.swingAnim(dt);
       batter.body.rotation.y = Math.sin(t * 1.6) * 0.07;

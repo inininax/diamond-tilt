@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Diamond Tilt — 2.5D 야구</title>
+<title>Diamond Tilt — 2.5D Baseball</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; overflow: hidden; background: #0b1220;
@@ -69,10 +69,10 @@
 <canvas id="game"></canvas>
 
 <div id="scoreboard" class="panel">
-  <div class="cell"><div class="lab">이닝</div><div class="val" id="inning">1초</div></div>
-  <div class="cell"><div class="lab">카운트</div><div class="val" id="count">0-0</div></div>
-  <div class="cell"><div class="lab">아웃</div><div class="val" id="outs">0</div></div>
-  <div class="cell"><div class="lab">스코어</div><div class="val" id="score">0 : 0</div></div>
+  <div class="cell"><div class="lab">INNING</div><div class="val" id="inning">Top 1</div></div>
+  <div class="cell"><div class="lab">COUNT</div><div class="val" id="count">0-0</div></div>
+  <div class="cell"><div class="lab">OUTS</div><div class="val" id="outs">OUTS 0</div></div>
+  <div class="cell"><div class="lab">SCORE</div><div class="val" id="score">0 : 0</div></div>
   <div class="bases">
     <div class="base second" id="base_second"></div>
     <div class="base first" id="base_first"></div>
@@ -80,28 +80,28 @@
   </div>
 </div>
 
-<div id="battingLabel" class="panel">⚔️ 타격 — 공을 보고 SWING!</div>
+<div id="battingLabel" class="panel">BAT — watch the ball, then SWING!</div>
 <div id="coins" class="panel">🪙 0</div>
 
 <div id="zoneGrid" class="panel"></div>
 <div class="speedRow panel">
-  <button class="speed" data-speed="0">느리게</button>
-  <button class="speed sel" data-speed="1">보통</button>
-  <button class="speed" data-speed="2">빠르게</button>
+  <button class="speed" data-speed="0">Slow</button>
+  <button class="speed sel" data-speed="1">Normal</button>
+  <button class="speed" data-speed="2">Fast</button>
 </div>
 <button id="swingBtn" class="panel">SWING!</button>
 
 <ul id="log" class="panel"></ul>
 
 <div id="help" class="panel">
-  🖱️ 존 클릭 = 투구 · SWING/Space/화면 클릭 = 타격<br>
-  말(공격)에만 타격 · 3이닝 매치
+  Click a zone = pitch · SWING button / Space / tap = bat<br>
+  You bat in the bottom half · 3-inning match
 </div>
 
 <div id="result">
-  <div id="resultTitle">승리!</div>
-  <div id="resultScore">0 : 0</div>
-  <button id="againBtn">다시 하기</button>
+  <div id="resultTitle">VICTORY!</div>
+  <div id="resultScore">Final score 0 : 0</div>
+  <button id="againBtn">Play Again</button>
 </div>
 
 <script src="lib/three.min.js"></script>

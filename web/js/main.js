@@ -44,11 +44,12 @@
   const stadium = new window.DTScene.Stadium(scene);
 
   // ---- session ----
-  let coins = 0;
+  let coins = parseInt(localStorage.getItem('dt.coins') || '0', 10) || 0;
+  const addCoins = (n) => { coins += n; localStorage.setItem('dt.coins', String(coins)); };
   const session = new window.DTSession.MatchPlaySession(
     (Math.random() * 2147483647) | 0,
     (result) => {
-      coins += result === 'Home' ? 100 : 30;
+      addCoins(result === 'Home' ? 100 : 30);
     });
   stadium.updateRunnersFromState(session.state, null, false);
 
@@ -102,29 +103,30 @@
     while (logList.children.length > 5) logList.removeChild(logList.lastChild);
   }
   function describe(e) {
-    const half = e.isTop ? '초' : '말';
-    const side = e.isTop ? '원정' : '홈';
+    const half = e.isTop ? 'Top' : 'Bot';
+    const side = e.isTop ? 'Away' : 'Home';
     switch (e.type) {
-      case 'BallCalled': return `${e.inning}${half} 볼`;
-      case 'StrikeCalled': return `${e.inning}${half} 스트라이크`;
-      case 'BatterWalked': return `${e.inning}${half} 볼넷!`;
-      case 'BatterStruckOut': return `${e.inning}${half} 삼진!`;
-      case 'BatterOut': return `${e.inning}${half} 아웃`;
-      case 'RunnerOut': return `${e.inning}${half} 주자 아웃!`;
-      case 'HitRecorded': return `${side} 안타!`;
-      case 'HomerunRecorded': return `${side} 홈런!!!`;
-      case 'RunScored': return `${side} 득점!`;
-      case 'HalfInningEnded': return `${e.inning}${half} 종료`;
-      case 'MatchEnded': return '경기 종료';
+      case 'BallCalled': return `${half} ${e.inning}: Ball`;
+      case 'Foul': return `${e.inning}${half} Foul`;
+      case 'StrikeCalled': return `Strike`;
+      case 'BatterWalked': return `Walk!`;
+      case 'BatterStruckOut': return `Strikeout!`;
+      case 'BatterOut': return `Batter out`;
+      case 'RunnerOut': return `Runner out!`;
+      case 'HitRecorded': return `${side}: Hit!`;
+      case 'HomerunRecorded': return `${side}: HOME RUN!!!`;
+      case 'RunScored': return `${side} scores!`;
+      case 'HalfInningEnded': return `End ${e.inning}${half}`;
+      case 'MatchEnded': return 'Final';
       default: return e.type;
     }
   }
 
   function updateHUD() {
     const s = session.state;
-    el('inning').textContent = `${s.inning}${s.isTop ? '초' : '말'}`;
+    el('inning').textContent = `${s.isTop ? 'Top' : 'Bot'} ${s.inning}`;
     el('count').textContent = `${s.balls}-${s.strikes}`;
-    el('outs').textContent = `아웃 ${s.outs}`;
+    el('outs').textContent = `OUTS ${s.outs}`;
     el('score').textContent = `${s.awayRuns} : ${s.homeRuns}`;
     el('coins').textContent = `🪙 ${coins}`;
     ['first', 'second', 'third'].forEach(k => {
@@ -134,13 +136,13 @@
     const over = session.phase === 'MatchOver';
     el('result').style.display = over ? 'flex' : 'none';
     if (over) {
-      const r = s.result === 'Home' ? '🏆 승리!' : s.result === 'Away' ? '😢 패배' : '🤝 무승부';
+      const r = s.result === 'Home' ? '🏆 VICTORY!' : s.result === 'Away' ? '💀 DEFEAT' : '🤝 DRAW';
       el('resultTitle').textContent = r;
-      el('resultScore').textContent = `최종 스코어 ${s.awayRuns} : ${s.homeRuns}`;
+      el('resultScore').textContent = `Final score ${s.awayRuns} : ${s.homeRuns}`;
     }
 
     const batting = session.playerBatting;
-    el('battingLabel').textContent = batting ? '⚔️ 타격 — 공을 보고 SWING!' : '🎯 수비 — 존을 골라 투구';
+    el('battingLabel').textContent = batting ? 'BAT — watch the ball, then SWING!' : 'DEFENSE — pick a zone to pitch';
     swingBtn.style.display = batting && session.phase === 'BallIncoming' ? 'block' : 'none';
     if (session.phase === 'WaitingToPitch' && s.isTop) showZones(); else hideZones();
   }
@@ -150,6 +152,7 @@
   let acc = 0;
   let lastT = performance.now();
   let camTarget = new THREE.Vector3(0, 1.4, 14);
+  let lastBoardSig = '';
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -172,8 +175,14 @@
       if (session.phase === 'BetweenPlays') {
         if (session.lastContactWasSwing && session.lastContactFlight) {
           stadium.startContactAnimation(session.lastContactFlight);
-          setTimeout(() => stadium.updateRunnersFromState(session.state, session.lastOutcome, true),
-            Math.max(700, window.BallFlight.flightTimeNoDrag(session.lastContactFlight) * 1000 * 0.7));
+          const outcome = session.lastOutcome;
+          setTimeout(() => {
+            stadium.updateRunnersFromState(session.state, outcome, true);
+            if (outcome === 'Single' || outcome === 'LineSingle' || outcome === 'Double' ||
+                outcome === 'Triple' || outcome === 'Homerun') {
+              stadium.animateBatterRunner(outcome);
+            }
+          }, Math.max(700, window.BallFlight.flightTimeNoDrag(session.lastContactFlight) * 1000 * 0.7));
         } else {
           stadium.ballToCatcher();
           setTimeout(() => stadium.updateRunnersFromState(session.state, null, false), 350);
@@ -187,11 +196,14 @@
       if (e.type === 'HalfInningEnded') stadium.updateRunnersFromState(session.state, null, false);
     }
 
-    if (typeof stadium.updateScoreboard === 'function') {
+    {
       const s2 = session.state;
-      stadium.updateScoreboard(
-        `${s2.awayRuns} : ${s2.homeRuns}`,
-        `${s2.inning}${s2.isTop ? '초' : '말'} · ${s2.balls}-${s2.strikes} · 아웃 ${s2.outs}`);
+      const sig = `${s2.awayRuns}:${s2.homeRuns}|${s2.isTop?'T':'B'}${s2.inning}|${s2.balls}-${s2.strikes}-${s2.outs}`;
+      if (sig !== lastBoardSig && typeof stadium.updateScoreboard === 'function') {
+        lastBoardSig = sig;
+        stadium.updateScoreboard(`${s2.awayRuns} : ${s2.homeRuns}`,
+          `${s2.isTop ? 'Top' : 'Bot'} ${s2.inning} · ${s2.balls}-${s2.strikes} · OUTS ${s2.outs}`);
+      }
     }
 
     stadium.update(dt, session);

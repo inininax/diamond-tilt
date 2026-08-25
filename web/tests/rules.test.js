@@ -81,12 +81,24 @@ test('grand slam scores four', () => {
   assert.ok(!e.s.first && !e.s.second && !e.s.third);
 });
 
-test('grounder DP with runner on first (<2 outs)', () => {
-  const e = newEngine();
-  e.s.first = true;
-  e.throwPitch({ zone: 4, speedTier: 1 }, { took: true, offsetTicks: 2 }); // offset2+strike = Single... use grounder via offset? 
-  // TimingContactModel has no grounder; force via DeepFly-out path instead is different.
-  // Instead verify DP through direct state: skip if outcome was not Grounder.
+test('grounder DP with runner on first (<2 outs): two outs recorded', () => {
+  const grounderEngine = new MatchEngine(
+    { evaluate: () => ({ outcome: 'Grounder', flight: null }) }, Math.random);
+  grounderEngine.s.first = true;
+  grounderEngine.throwPitch({ zone: 4, speedTier: 1 }, { took: true, offsetTicks: 2 });
+  assert.equal(grounderEngine.s.outs, 2);
+  assert.equal(grounderEngine.s.first, false);
+});
+
+test('grounder DP at 2 outs does not double-play', () => {
+  const grounderEngine = new MatchEngine(
+    { evaluate: () => ({ outcome: 'Grounder', flight: null }) }, Math.random);
+  grounderEngine.s.first = true;
+  grounderEngine.s.outs = 2;
+  grounderEngine.throwPitch({ zone: 4, speedTier: 1 }, { took: true, offsetTicks: 2 });
+  assert.equal(grounderEngine.s.outs, 0); // third out ends the half, count resets
+  assert.ok(grounderEngine.events.some(x => x.type === 'BatterOut'));
+  assert.ok(!grounderEngine.events.some(x => x.type === 'RunnerOut')); // no DP at 2 outs
 });
 
 test('deep fly as third out: no run counts', () => {
@@ -97,19 +109,13 @@ test('deep fly as third out: no run counts', () => {
   assert.ok(e.drainEvents().some(x => x.type === 'HalfInningEnded'));
 });
 
-test('walk-off: home takes lead in bottom of final', () => {
+test('walk-off: sac fly in bottom of final wins it', () => {
   const e = newEngine();
   Object.assign(e.s, { inning: 3, isTop: false, awayRuns: 1, homeRuns: 1, third: true });
-  e.throwPitch({ zone: 4, speedTier: 1 }, { took: true, offsetTicks: 2 }); // grounder-like? offset2 meat = Single...
-  // Use corner perfect DeepFly: sac fly scores runner from third -> 2:1 walk-off
-  e2_helper();
-  function e2_helper() {
-    const e2 = newEngine();
-    Object.assign(e2.s, { inning: 3, isTop: false, awayRuns: 1, homeRuns: 1, third: true });
-    e2.throwPitch({ zone: 1, speedTier: 1 }, { took: true, offsetTicks: 0 }); // DeepFly sac fly
-    assert.equal(e2.s.phase, 'Finished');
-    assert.equal(e2.s.result, 'Home');
-  }
+  e.throwPitch({ zone: 1, speedTier: 1 }, { took: true, offsetTicks: 0 }); // corner perfect = sac fly
+  assert.equal(e.s.phase, 'Finished');
+  assert.equal(e.s.result, 'Home');
+  assert.equal(e.s.homeRuns, 2);
 });
 
 test('final inning top half, home ahead: bottom skipped', () => {

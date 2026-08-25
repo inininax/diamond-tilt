@@ -111,7 +111,7 @@
     resolveFoul() {
       const s = this.s;
       if (s.strikes < STRIKES_FOR_OUT - 1) s.strikes++;
-      this.events.push({ type: 'StrikeCalled', inning: s.inning, isTop: s.isTop });
+      this.events.push({ type: 'Foul', inning: s.inning, isTop: s.isTop });
     }
 
     resolveContact(pitch, absOffset, perfectBand) {
